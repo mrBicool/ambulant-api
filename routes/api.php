@@ -1,4 +1,7 @@
 <?php
+header('Access-Control-Allow-Origin:  *');
+header('Access-Control-Allow-Methods:  POST, GET, OPTIONS, PUT, DELETE');
+header('Access-Control-Allow-Headers:  Content-Type, token, grant-type, X-Auth-Token, Origin, Authorization');
 
 use Illuminate\Http\Request;
 
@@ -16,3 +19,8 @@ use Illuminate\Http\Request;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::post('/login',                           'Api\LoginController@login');
+Route::post('/outlet/category',                 'Api\PartLocationController@groups')->middleware('role:ambulant');
+Route::post('/outlet/category/sub-category',    'Api\PartLocationController@category')->middleware('role:ambulant');
+Route::post('/outlet/products',                 'Api\PartLocationController@byGroupAndCategory')->middleware('role:ambulant');
