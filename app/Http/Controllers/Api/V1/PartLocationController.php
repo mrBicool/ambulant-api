@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Api\V1;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -11,36 +11,34 @@ use DB;
 use App\Model\PartLocation;
 use App\Model\SitePart;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class PartLocationController extends Controller
-{
-    private $grant_type;
-    private $token;
-    private $helper;
-    private $current_duty;
+{ 
+    private $helper;  
 
-    public function __construct(Helper $helper, Request $request, UserSite $user_site)
-    {
-        $this->grant_type     = $request->header('grant-type');
-        $this->token          = $request->header('token');
-        $this->helper         = new Helper;
-
-        if( isset($this->token)  ){
-            $user                   = $user_site::findByToken($this->token);
-            $this->current_duty     = $user->isOnDuty($this->helper->getClarionDate(now())); 
-        }
+    public function __construct(Helper $helper)
+    { 
+        $this->helper         = new Helper; 
     }
 
     //
-    public function groups(Request $request){   
+    public function groups(Request $request){
+
+        $user = Auth::user();  
+        dd($user);   
         /**
          * GET PRODUCT BELONGS TO OUTLET
-         */
+         */ 
         $pl = PartLocation::with('group')
-                ->where('outlet_id', $this->current_duty->outlet)->get();
+                ->where('outlet_id', 
+                $user->current_outlet(
+                    $this->helper->getClarionDate(now())
+                )
+            )->get();
 
         $val = config('custom.group_not_to_display');
-        $val = explode(',',$val);         
+        $val = explode(',',$val);
 
         $groups = $pl->unique('group')
             ->whereNotIn('group.group_id',$val)
@@ -79,8 +77,13 @@ class PartLocationController extends Controller
 
     public function byGroupAndCategory(Request $request){
         try{
+            $user = Auth::user(); 
 
-            $result = PartLocation::where('outlet_id', $this->current_duty->outlet)
+            $result = PartLocation::where('outlet_id', 
+                    $user->current_outlet(
+                        $this->helper->getClarionDate(now())
+                    )
+                )
                 ->where('group_id', $request->group_id)
                 ->where('category_id', $request->category_id)
                 ->simplePaginate(15);
@@ -119,6 +122,11 @@ class PartLocationController extends Controller
             ]);
 
         }catch(\Exception $e){
+            return response()->json([
+                'success'   => false,
+                'status'    => 500,
+                'data'      => $e->getMessage()
+            ]);
             Log::error($e->getMessage());
         }
     }

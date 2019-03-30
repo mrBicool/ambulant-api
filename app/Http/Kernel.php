@@ -63,6 +63,7 @@ class Kernel extends HttpKernel
 
         // custom
         'role'          => \App\Http\Middleware\UserRole::class,
+        'is_on_duty'    => \App\Http\Middleware\CheckIfIsOnDuty::class,
     ];
 
     /**
