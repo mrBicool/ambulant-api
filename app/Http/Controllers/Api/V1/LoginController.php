@@ -81,7 +81,6 @@ class LoginController extends Controller
                 'message'       => 'Success',
                 'data'          => [
                     'name'      => $user->name,
-                    'user'      => $user,
                     'api_token' => $user->api_token,
                     'outlet'    => [
                         'id'    => $isOnDuty->storeOutlet->outlet_id,

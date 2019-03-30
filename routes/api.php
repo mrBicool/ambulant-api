@@ -3,9 +3,7 @@ header('Access-Control-Allow-Origin:  *');
 header('Access-Control-Allow-Methods:  POST, GET, OPTIONS, PUT, DELETE');
 header('Access-Control-Allow-Headers:  Content-Type, token, grant-type, X-Auth-Token, Origin, Authorization');
 
-use Illuminate\Http\Request;
 use App\Library\Helper;
-use Illuminate\Support\Facades\Auth;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -30,15 +28,6 @@ Route::namespace('Api\V1')->group(function () {
 
     // PUBLIC
     Route::post('/login',   'LoginController@login');
-    // Route::post('/logout',  function(){
-    //     dd(Auth::user());
-    //     return response()->json([
-    //         'success'   => true,
-    //         'status'    => 200,
-    //         'message'   => 'Success.'
-    //     ]); 
-    // }); 
-
     // AUTHORIZED
     Route::middleware('auth:api')->group(function () { 
         Route::middleware('is_on_duty')->group(function(){ 
