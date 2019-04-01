@@ -26,7 +26,7 @@ class PartLocationController extends Controller
     public function groups(Request $request){
 
         $user = Auth::user();  
-        dd($user);   
+         
         /**
          * GET PRODUCT BELONGS TO OUTLET
          */ 

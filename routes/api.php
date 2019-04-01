@@ -3,6 +3,7 @@ header('Access-Control-Allow-Origin:  *');
 header('Access-Control-Allow-Methods:  POST, GET, OPTIONS, PUT, DELETE');
 header('Access-Control-Allow-Headers:  Content-Type, token, grant-type, X-Auth-Token, Origin, Authorization');
 
+use Illuminate\Http\Request;
 use App\Library\Helper;
 /*
 |--------------------------------------------------------------------------
@@ -34,7 +35,8 @@ Route::namespace('Api\V1')->group(function () {
             Route::post('/outlet/category',                 'PartLocationController@groups');
             Route::post('/outlet/category/sub-category',    'PartLocationController@category');
             Route::post('/outlet/products',                 'PartLocationController@byGroupAndCategory');
-    
+            
+            Route::post('/logout',                          'LoginController@logout');
         }); 
     });
 

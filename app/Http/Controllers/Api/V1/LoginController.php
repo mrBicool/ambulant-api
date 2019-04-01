@@ -65,15 +65,14 @@ class LoginController extends Controller
             }
 
             // create a token for this user
+            
             $user->api_token    = $helper->createToken($token);
             $user->update();
               
             /**
              * Committing all changes in the database
              */
-            DB::commit();
-            
-            Auth::login($user); 
+            DB::commit(); 
 
             return response()->json([
                 'success'       => true,
@@ -81,7 +80,7 @@ class LoginController extends Controller
                 'message'       => 'Success',
                 'data'          => [
                     'name'      => $user->name,
-                    'api_token' => $user->api_token,
+                    'api_token' => $token,
                     'outlet'    => [
                         'id'    => $isOnDuty->storeOutlet->outlet_id,
                         'name'  => $isOnDuty->storeOutlet->description
@@ -100,5 +99,16 @@ class LoginController extends Controller
 
         }
 
+    }
+
+    public function logout(Request $request){ 
+        $user = Auth::user();
+        $user->api_token = '';
+        $user->save();
+        return response()->json([
+            'success'       => true,
+            'status'        => 200,
+            'message'       => 'Success'
+        ]);
     }
 }
