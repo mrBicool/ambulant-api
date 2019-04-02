@@ -116,9 +116,7 @@ class PartLocationController extends Controller
             return response()->json([
                 'success'   => true,
                 'status'    => 200,
-                'result'    => [
-                    'data'  => $result
-                ]
+                'result'    => $result
             ]);
 
         }catch(\Exception $e){

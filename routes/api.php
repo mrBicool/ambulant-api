@@ -29,14 +29,15 @@ Route::namespace('Api\V1')->group(function () {
 
     // PUBLIC
     Route::post('/login',   'LoginController@login');
+
     // AUTHORIZED
     Route::middleware('auth:api')->group(function () { 
         Route::middleware('is_on_duty')->group(function(){ 
-            Route::post('/outlet/category',                 'PartLocationController@groups');
-            Route::post('/outlet/category/sub-category',    'PartLocationController@category');
-            Route::post('/outlet/products',                 'PartLocationController@byGroupAndCategory');
+            Route::post('/outlet/category',                         'PartLocationController@groups');
+            Route::post('/outlet/category/sub-category',            'PartLocationController@category');
+            Route::post('/outlet/category/sub-category/products',   'PartLocationController@byGroupAndCategory');
             
-            Route::post('/logout',                          'LoginController@logout');
+            Route::post('/logout',                                  'LoginController@logout');
         }); 
     });
 
