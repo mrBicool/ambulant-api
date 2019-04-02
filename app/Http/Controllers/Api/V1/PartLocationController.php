@@ -129,4 +129,27 @@ class PartLocationController extends Controller
         }
     }
 
+    public function productByOutlet(Request $request){
+        $product_id = $request->product_id;
+        $outlet_id  = $request->outlet_id;
+
+        $result = PartLocation::where('outlet_id',  $outlet_id )
+                ->where('product_id', $product_id)
+                ->first(); 
+                
+        return response()->json([
+            'success'   => true,
+            'status'    => 200,
+            'result'    => $result
+        ]);
+    }
+
+    public function productComponents(Request $request){
+        
+    }
+
+    public function productByCategory(Request $request){
+        
+    }
+
 }

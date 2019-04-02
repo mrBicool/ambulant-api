@@ -37,6 +37,11 @@ Route::namespace('Api\V1')->group(function () {
             Route::post('/outlet/category/sub-category',            'PartLocationController@category');
             Route::post('/outlet/category/sub-category/products',   'PartLocationController@byGroupAndCategory');
             
+            // product
+            Route::post('/product',                 'PartLocationController@productByOutlet');
+            Route::post('/product/components',      'PartLocationController@productComponents');
+            Route::post('/product/categories',      'PartLocationController@productByCategory');
+
             Route::post('/logout',                                  'LoginController@logout');
         }); 
     });

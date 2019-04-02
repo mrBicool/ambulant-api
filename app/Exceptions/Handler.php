@@ -6,6 +6,7 @@ use Exception;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 
 use Illuminate\Auth\AuthenticationException; // ******
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class Handler extends ExceptionHandler
 {
@@ -66,7 +67,15 @@ class Handler extends ExceptionHandler
      * @return \Illuminate\Http\Response
      */
     public function render($request, Exception $exception)
-    {   
+    {    
+        if ($exception instanceof NotFoundHttpException){
+            return response()->json([
+                'success'   => false,
+                'status'    => 404,
+                'message'   => 'Resource not found!'
+            ]);
+        }
+
         return parent::render($request, $exception);
     } 
 }
