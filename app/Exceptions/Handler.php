@@ -74,8 +74,7 @@ class Handler extends ExceptionHandler
                 'status'    => 404,
                 'message'   => 'Resource not found!'
             ]);
-        }
-
+        } 
         return parent::render($request, $exception);
-    } 
+    }
 }

@@ -54,9 +54,9 @@ class PartLocation extends Model
     }
 
     public function postmixNoneModifiableComponents(){ 
-       return $this->hasMany('App\Model\Postmix','PRODUCT _ID','PRODUCT _ID')
+       return $this->hasMany('App\Model\Postmix','PRODUCT_ID','PRODUCT _ID')
             ->where('MODIFIABLE',0);
-     }
+    }
 
      /**
       * LOGIC
@@ -66,5 +66,11 @@ class PartLocation extends Model
                 ->where('group_id', $gid)
                 ->where('category_id', $cid)
                 ->simplePaginate($limit);
+    }
+
+    public static function byProductAndOutlet($product_id,$outlet_id){
+        return static::where('outlet_id',  $outlet_id )
+            ->where('product_id', $product_id)
+            ->first(); 
     }
 }

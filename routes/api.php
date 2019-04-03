@@ -43,7 +43,7 @@ Route::namespace('Api\V1')->group(function () {
             Route::post('/product/categories',      'PartLocationController@productByCategory');
 
             Route::post('/logout',                                  'LoginController@logout');
-        }); 
+        });
     });
 
 }); 

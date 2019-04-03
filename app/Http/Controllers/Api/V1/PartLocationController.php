@@ -8,7 +8,12 @@ use App\Model\UserSite;
 use App\Model\Category;
 use App\Library\Helper;
 use DB;
+
 use App\Model\PartLocation;
+use App\Http\Resources\PartLocation as PartLocationResource;
+use App\Http\Resources\Postmix as PostmixResource;
+use App\Http\Resources\PostmixCollection;
+
 use App\Model\SitePart;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -133,10 +138,10 @@ class PartLocationController extends Controller
         $product_id = $request->product_id;
         $outlet_id  = $request->outlet_id;
 
-        $result = PartLocation::where('outlet_id',  $outlet_id )
-                ->where('product_id', $product_id)
-                ->first(); 
-                
+        $pl = PartLocation::byProductAndOutlet($product_id,$outlet_id);
+
+        $result = new PartLocationResource($pl);
+        
         return response()->json([
             'success'   => true,
             'status'    => 200,
@@ -145,7 +150,19 @@ class PartLocationController extends Controller
     }
 
     public function productComponents(Request $request){
+        $product_id = $request->product_id;
+        $outlet_id  = $request->outlet_id;
+
+        $pl = PartLocation::byProductAndOutlet($product_id,$outlet_id); 
+        $pl = $pl->postmixModifiableComponents; 
         
+        $result = new PostmixCollection($pl);
+        
+        return response()->json([
+            'success'   => true,
+            'status'    => 200,
+            'result'    => $result
+        ]);
     }
 
     public function productByCategory(Request $request){
