@@ -137,27 +137,28 @@ class PartLocationController extends Controller
     public function productByOutlet(Request $request){
         $product_id = $request->product_id;
         $outlet_id  = $request->outlet_id;
-
-        $pl = PartLocation::byProductAndOutlet($product_id,$outlet_id);
-
-        $result = new PartLocationResource($pl);
         
-        return response()->json([
-            'success'   => true,
-            'status'    => 200,
-            'result'    => $result
-        ]);
+        dd($product_id, $outlet_id);
+
+        // $pl = PartLocation::byProductAndOutlet($product_id,$outlet_id);
+
+        // $result = new PartLocationResource($pl);
+        
+        // return response()->json([
+        //     'success'   => true,
+        //     'status'    => 200,
+        //     'result'    => $result
+        // ]);
     }
 
     public function productComponents(Request $request){
         $product_id = $request->product_id;
-        $outlet_id  = $request->outlet_id;
+        $outlet_id  = $request->outlet_id; 
 
         $pl = PartLocation::byProductAndOutlet($product_id,$outlet_id); 
-        $pl = $pl->postmixModifiableComponents; 
-        
-        $result = new PostmixCollection($pl);
-        
+        $pl = $pl->postmixModifiableComponents()->paginate();  
+        $result = new PostmixCollection($pl); 
+
         return response()->json([
             'success'   => true,
             'status'    => 200,

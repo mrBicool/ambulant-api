@@ -15,11 +15,6 @@ class PostmixCollection extends ResourceCollection
     public function toArray($request)
     {
         //return parent::toArray($request);
-        return [
-            'data' => $this->collection,
-            'links' => [
-                'self' => 'link-value',
-            ],
-        ];
+        return ['data' => $this->collection];
     }
 }

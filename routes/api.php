@@ -1,7 +1,7 @@
 <?php
 header('Access-Control-Allow-Origin:  *');
 header('Access-Control-Allow-Methods:  POST, GET, OPTIONS, PUT, DELETE');
-header('Access-Control-Allow-Headers:  Content-Type, token, grant-type, X-Auth-Token, Origin, Authorization');
+header('Access-Control-Allow-Headers:  Content-Type, Accept, X-Auth-Token, Origin, Authorization, User-Agent');
 
 use Illuminate\Http\Request;
 use App\Library\Helper;
