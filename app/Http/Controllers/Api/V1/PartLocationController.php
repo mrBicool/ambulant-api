@@ -137,18 +137,17 @@ class PartLocationController extends Controller
     public function productByOutlet(Request $request){
         $product_id = $request->product_id;
         $outlet_id  = $request->outlet_id;
-        
-        dd($product_id, $outlet_id);
+         
 
-        // $pl = PartLocation::byProductAndOutlet($product_id,$outlet_id);
+        $pl = PartLocation::byProductAndOutlet($product_id,$outlet_id);
 
-        // $result = new PartLocationResource($pl);
+        $result = new PartLocationResource($pl);
         
-        // return response()->json([
-        //     'success'   => true,
-        //     'status'    => 200,
-        //     'result'    => $result
-        // ]);
+        return response()->json([
+            'success'   => true,
+            'status'    => 200,
+            'result'    => $result
+        ]);
     }
 
     public function productComponents(Request $request){
@@ -166,8 +165,23 @@ class PartLocationController extends Controller
         ]);
     }
 
-    public function productByCategory(Request $request){
+    public function productByCategory(Request $request){ 
+        $product_id = $request->product_id;
+        $outlet_id  = $request->outlet_id; 
         
+        $pl = PartLocation::where('product_id',$product_id)
+                ->where('outlet_id', $outlet_id)
+                ->first();
+
+        $pls = PartLocation::where('category_id', $pl->category_id)
+                    ->where('product_id','!=',$pl->product_id)
+                    ->where('outlet_id', $outlet_id)
+                    ->get();
+        //dd($pls);
+        return [
+            new PartLocationResource($pl),
+           $pls
+        ];
     }
 
 }
