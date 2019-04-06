@@ -11,6 +11,7 @@ use DB;
 
 use App\Model\PartLocation;
 use App\Http\Resources\PartLocation as PartLocationResource;
+use App\Http\Resources\PartLocationCollection;
 use App\Http\Resources\Postmix as PostmixResource;
 use App\Http\Resources\PostmixCollection;
 
@@ -166,22 +167,28 @@ class PartLocationController extends Controller
     }
 
     public function productByCategory(Request $request){ 
+
         $product_id = $request->product_id;
         $outlet_id  = $request->outlet_id; 
         
-        $pl = PartLocation::where('product_id',$product_id)
-                ->where('outlet_id', $outlet_id)
-                ->first();
-
-        $pls = PartLocation::where('category_id', $pl->category_id)
-                    ->where('product_id','!=',$pl->product_id)
+        $pl     = PartLocation::where('product_id',$product_id)
                     ->where('outlet_id', $outlet_id)
-                    ->get();
-        //dd($pls);
-        return [
-            new PartLocationResource($pl),
-           $pls
-        ];
+                    ->first();
+
+        $pls    = PartLocation::byCategoryOfProductPerOutlet(
+                        $pl->category_id,
+                        $pl->product_id,
+                        $outlet_id
+                    ); 
+        
+        return response()->json([
+            'success'   => true,
+            'status'    => 200,
+            'result'    => [
+                'product'       => new PartLocationResource($pl),
+                'categories'    => new PartLocationCollection($pls)
+            ]
+        ]); 
     }
 
 }

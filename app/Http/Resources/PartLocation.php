@@ -20,11 +20,12 @@ class PartLocation extends JsonResource
             'product_id'    => $this->product_id,
             'description'   => $this->description,
             'short_code'    => $this->short_code,
-            'price'         => $this->retail,
+            'price'         => (double)$this->retail,
             'postmix'       => $this->postmix,
             'is_food'       => $this->is_food,
             'prepartno'     => $this->prepartno,
-            'ssbuffer'      => $this->ssbuffer
+            'ssbuffer'      => $this->ssbuffer,
+            'part_number'   => $this->part_number
         ];
     }
 }

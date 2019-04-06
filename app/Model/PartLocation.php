@@ -31,7 +31,8 @@ class PartLocation extends Model
         'ssbuffer'          => 'SSBUFFER',
         'is_food'           => 'MSGROUP',
         'qty'               => 'QUANTITY',
-        'kitchen_location'  => 'PRODGRP'
+        'kitchen_location'  => 'PRODGRP',
+        'part_number'       => 'PARTNO'
     ];
 
     protected $getterMutators = [
@@ -39,6 +40,7 @@ class PartLocation extends Model
         'group_id'      => 'trim',
         'category'      => 'trim',
         'short_code'    => 'trim',
+        'part_number'   => 'trim'
     ];
 
     /**
@@ -72,5 +74,12 @@ class PartLocation extends Model
         return static::where('outlet_id',  $outlet_id )
             ->where('product_id', $product_id)
             ->first(); 
+    }
+
+    public static function byCategoryOfProductPerOutlet($category_id,$product_id,$outlet_id){
+        return static::where('category_id', $category_id)
+            ->where('product_id','!=',$product_id)
+            ->where('outlet_id', $outlet_id)
+            ->get();
     }
 }

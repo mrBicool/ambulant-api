@@ -42,6 +42,8 @@ Route::namespace('Api\V1')->group(function () {
             Route::post('/product/components',              'PartLocationController@productComponents');
             Route::post('/product/component/categories',      'PartLocationController@productByCategory');
 
+            Route::post('/orderslip', 'OrderSlipController@store');
+
             Route::post('/logout',                                  'LoginController@logout');
         });
     });
