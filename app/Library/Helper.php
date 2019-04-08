@@ -28,8 +28,6 @@ class Helper
     public function createToken($string){ 
          return hash('sha256', $string);
         //return Hash::make($string.now());
-    }
-
-    
+    } 
 
 }

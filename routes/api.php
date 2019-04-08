@@ -43,6 +43,7 @@ Route::namespace('Api\V1')->group(function () {
             Route::post('/product/component/categories',      'PartLocationController@productByCategory');
 
             Route::post('/orderslip', 'OrderSlipController@store');
+            Route::get('/orderslip/active','OrderSlipController@getActiveOrder');
 
             Route::post('/logout',                                  'LoginController@logout');
         });

@@ -14,7 +14,7 @@ class Postmix extends JsonResource
      */
     public function toArray($request)
     {
-        //return parent::toArray($request);
+        //return parent::toArray($request); 
         return [
             'parent_id'        	=> $this->parent_id,
             'product_id'       	=> $this->product_id,
@@ -23,7 +23,8 @@ class Postmix extends JsonResource
             'extend_cost'      	=> $this->extend_cost,
             'type'             	=> $this->type,
             'description'      	=> $this->description,
-            'partno'           	=> $this->partno,
+            'parent_partno'    	=> $this->parent_partno,
+            'product_partno'    => $this->product_partno,
             'yield'            	=> $this->yield,
 
             'modifiable'        => $this->modifiable,

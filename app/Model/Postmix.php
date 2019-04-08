@@ -27,7 +27,8 @@ class Postmix extends Model
         'extend_cost'      	=> 'EXTENDCOST',
         'type'             	=> 'TYPE',
         'description'      	=> 'DESCRIPTION',
-        'partno'           	=> 'PARTNO',
+        'parent_partno'     => 'PARTNO',
+        'product_partno'    => 'PARTSPARTNO',
         'yield'            	=> 'YIELD',
 
         'modifiable'        => 'MODIFIABLE',
@@ -35,7 +36,10 @@ class Postmix extends Model
         'comp_cat_id'       => 'COMPCATID',
     ];
     protected $getterMutators = [
-    	'description'		=> 'trim'
+        'description'		=> 'trim',
+        'parent_partno'		=> 'trim',
+        'product_partno'	=> 'trim',
+        'comp_cat_id'	    => 'trim',
     ];
 
     /**

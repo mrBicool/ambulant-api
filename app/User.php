@@ -61,7 +61,7 @@ class User extends Authenticatable
     ];
 
     /**
-     * Logic
+     * Logic 
      */
     public static function findByUsername($username){
       return static::where('username', $username)->first();
