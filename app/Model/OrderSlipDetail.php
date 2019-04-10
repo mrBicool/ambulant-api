@@ -17,6 +17,7 @@ class OrderSlipDetail extends Model
 
     //model mapping
     protected $maps = [ 
+        'part' => ['part_id', 'description'],
     	'branch_id' 			=> 'BRANCHID', 
     	'orderslip_detail_id' 	=> 'ORDERSLIPDETAILID', 
      	'orderslip_header_id' 	=> 'ORDERSLIPNO', 
@@ -45,6 +46,13 @@ class OrderSlipDetail extends Model
     protected $getterMutators = [
         'part_number' => 'trim', 
     ];
+
+    /**
+     * Relationship
+     */
+    public function part(){
+        return $this->belongsTo('App\Model\Part','product_id');
+    }
 
     /**
      * Logic

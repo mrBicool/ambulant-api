@@ -20,7 +20,7 @@ class SitePart extends Model
     protected $maps = [
       // implicit relation mapping:
       'group' => ['group_code', 'description'],
-
+      'part'  => ['part_id', 'description'],
       // explicit relation mapping:
       //'picture' => 'profile.picture_path',
 
@@ -97,6 +97,8 @@ class SitePart extends Model
     public function components(){
         return $this->hasMany('App\Postmix', 'PRODUCT_ID', 'PRODUCT_ID');
     }
+
+     
  
 
     /**

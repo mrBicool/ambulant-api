@@ -49,6 +49,10 @@ class PartLocation extends Model
     public function group(){
         return $this->belongsTo('App\Model\Group', 'group_id');
     }
+
+    public function part(){
+        return $this->belongsTo('App\Model\Part','product_id');
+    }
     
     public function postmixModifiableComponents(){
         return $this->hasMany('App\Model\Postmix','PRODUCT_ID','PRODUCT_ID')

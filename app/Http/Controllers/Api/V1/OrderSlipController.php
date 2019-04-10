@@ -157,7 +157,7 @@ class OrderSlipController extends Controller
             // init
             $helper = new Helper;
             $osh = new OrderSlipHeader;
-            $osd = new OrderSlipDetail();
+            $osd = new OrderSlipDetail;
 
             $user = Auth::user();
             $isOnDuty = $user->isOnDuty($helper->getClarionDate(now()));
@@ -174,11 +174,12 @@ class OrderSlipController extends Controller
                 $header = new OrderSlipHeaderResource($header);
                 $details = $osd->getByOrderSlipHeaderId($header->orderslip_header_id);
                 $details = new OrderSlipDetailCollection($details);
+                $details = $details->groupBy('main_product_id'); //
             }
             
             return response()->json([
                 'success'   => true,
-                'status'    => 201,
+                'status'    => 200,
                 'result'    => [
                     'header' => $header,
                     'details' => $details
