@@ -165,7 +165,7 @@ class CustomerController extends Controller
             if( is_null($result) ){
                 return response()->json([
                     'success'   => false,
-                    'status'    => 200,
+                    'status'    => 422,
                     'message'   => 'Customer not found'
                 ]);
             }

@@ -49,7 +49,7 @@ class OrderSlipController extends Controller
                 $osh->encoded_by                = $user->username;
                 $osh->prepared_by               = $user->name;
                 $osh->cce_name                  = $user->name;
-                //$osh->total_hc                  = $request->others['headcounts']['regular'];
+                $osh->total_hc                  = 1;
                 $osh->outlet_id                 = $isOnDuty->storeOutlet->outlet_id;
                 $osh->save();
 
@@ -169,12 +169,13 @@ class OrderSlipController extends Controller
             // check if this ambulant has an active sales order
             $header = $osh->getActiveOrder($user->username);
             $details = null;
+            $_details = null;
 
             if($header){
                 $header = new OrderSlipHeaderResource($header);
                 $details = $osd->getByOrderSlipHeaderId($header->orderslip_header_id);
                 $details = new OrderSlipDetailCollection($details);
-                $details = $details->groupBy('main_product_id'); //
+                $_details = $details->groupBy('main_product_id'); //
             }
             
             return response()->json([
@@ -182,7 +183,8 @@ class OrderSlipController extends Controller
                 'status'    => 200,
                 'result'    => [
                     'header' => $header,
-                    'details' => $details
+                    '_details' => $details,
+                    'details' => $_details
                 ]
             ]);
 
