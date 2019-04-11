@@ -33,19 +33,22 @@ Route::namespace('Api\V1')->group(function () {
     // AUTHORIZED
     Route::middleware('auth:api')->group(function () { 
         Route::middleware('is_on_duty')->group(function(){ 
-            Route::post('/outlet/category',                         'PartLocationController@groups');
-            Route::post('/outlet/category/sub-category',            'PartLocationController@category');
-            Route::post('/outlet/category/sub-category/products',   'PartLocationController@byGroupAndCategory');
+            Route::post('/outlet/category', 'PartLocationController@groups');
+            Route::post('/outlet/category/sub-category', 'PartLocationController@category');
+            Route::post('/outlet/category/sub-category/products', 'PartLocationController@byGroupAndCategory');
             
             // product
-            Route::post('/product',                         'PartLocationController@productByOutlet');
-            Route::post('/product/components',              'PartLocationController@productComponents');
-            Route::post('/product/component/categories',      'PartLocationController@productByCategory');
+            Route::post('/product', 'PartLocationController@productByOutlet');
+            Route::post('/product/components', 'PartLocationController@productComponents');
+            Route::post('/product/component/categories', 'PartLocationController@productByCategory');
 
             Route::post('/orderslip', 'OrderSlipController@store');
-            Route::get('/orderslip/active','OrderSlipController@getActiveOrder');
+            Route::get('/orderslip/active', 'OrderSlipController@getActiveOrder');
 
-            Route::post('/logout',                                  'LoginController@logout');
+            // customer
+            Route::get('/customer/search', 'CustomerController@search');
+
+            Route::post('/logout', 'LoginController@logout');
         });
     });
 
