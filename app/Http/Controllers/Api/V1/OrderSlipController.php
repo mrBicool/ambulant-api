@@ -168,23 +168,21 @@ class OrderSlipController extends Controller
 
             // check if this ambulant has an active sales order
             $header = $osh->getActiveOrder($user->username);
-            $details = null;
-            $_details = null;
+            $details = null; 
 
             if($header){
                 $header = new OrderSlipHeaderResource($header);
                 $details = $osd->getByOrderSlipHeaderId($header->orderslip_header_id);
                 $details = new OrderSlipDetailCollection($details);
-                $_details = $details->groupBy(['main_product_id','sequence']); //
+                $details = $details->groupBy(['main_product_id','sequence']); //
             } 
 
             return response()->json([
                 'success'   => true,
                 'status'    => 200,
                 'result'    => [
-                    'header' => $header,
-                    '_details' => $details,
-                    'details' => $_details
+                    'header' => $header, 
+                    'details' => $details
                 ]
             ]);
 
