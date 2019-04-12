@@ -3,6 +3,8 @@
 namespace App\Model;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+
 use Sofa\Eloquence\Eloquence; // base trait
 use Sofa\Eloquence\Mappable; // extension trait
 use Sofa\Eloquence\Mutable; // extension trait
@@ -12,9 +14,10 @@ class OrderSlipHeader extends Model
     // 
     use Eloquence, Mappable, Mutable;
     //
-    protected $table 		= 'OrderSlipHeader'; 
+    protected $table 		= 'OrderSlipHeader';  
+    public $incrementing = false;
     public $timestamps 		= false;
- 
+     
     //model mapping
     protected $maps = [  
       // simple alias
@@ -68,5 +71,5 @@ class OrderSlipHeader extends Model
     //relationship
     public function transType(){
         return $this->belongsTo('App\TransactionType', $this->maps['transaction_type_id']);
-    }
+    } 
 }

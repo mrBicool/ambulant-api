@@ -34,7 +34,7 @@ class OrderSlipDetail extends JsonResource
 		'is_modify'				=> $this->is_modify,
         'line_number'           => $this->line_number,
         'old_comp_id'           => $this->old_comp_id,
-		'or_number' 			=> $this->or_number,
+		'sequence' 			    => $this->sequence,
 		'customer_id'			=> $this->customer_id,
         'encoded_date'          => $this->encoded_date,
         'main_product_id'       => $this->main_product_id,

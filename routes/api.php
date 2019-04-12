@@ -45,6 +45,8 @@ Route::namespace('Api\V1')->group(function () {
             Route::post('/orderslip', 'OrderSlipController@store');
             Route::get('/orderslip/active', 'OrderSlipController@getActiveOrder');
 
+            Route::patch('/orderslip/header', 'OrderSlipHeaderController@update');
+
             // customer
             Route::get('/customer/search', 'CustomerController@search');
 

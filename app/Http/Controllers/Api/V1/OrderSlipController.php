@@ -175,9 +175,9 @@ class OrderSlipController extends Controller
                 $header = new OrderSlipHeaderResource($header);
                 $details = $osd->getByOrderSlipHeaderId($header->orderslip_header_id);
                 $details = new OrderSlipDetailCollection($details);
-                $_details = $details->groupBy('main_product_id'); //
-            }
-            
+                $_details = $details->groupBy(['main_product_id','sequence']); //
+            } 
+
             return response()->json([
                 'success'   => true,
                 'status'    => 200,

@@ -35,7 +35,7 @@ class OrderSlipDetail extends Model
 		'is_modify'				=> 'IS_MODIFY',
         'line_number'           => 'LINE_NO',
         'old_comp_id'           => 'OLD_COMP_ID',
-		'or_number' 			=> 'ORNO',
+		'sequence' 			=> 'ORNO',
 		'customer_id'			=> 'CUSTOMERCODE',
         'encoded_date'          => 'ENCODEDDATE', 
         'main_product_id'       => 'MAIN_PRODUCT_ID',
