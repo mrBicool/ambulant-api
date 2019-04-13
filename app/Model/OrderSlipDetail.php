@@ -35,7 +35,7 @@ class OrderSlipDetail extends Model
 		'is_modify'				=> 'IS_MODIFY',
         'line_number'           => 'LINE_NO',
         'old_comp_id'           => 'OLD_COMP_ID',
-		'sequence' 			=> 'ORNO',
+		'sequence' 			    => 'ORNO',
 		'customer_id'			=> 'CUSTOMERCODE',
         'encoded_date'          => 'ENCODEDDATE', 
         'main_product_id'       => 'MAIN_PRODUCT_ID',
@@ -70,7 +70,7 @@ class OrderSlipDetail extends Model
     }
 
     public function getOrderTypeValue($str, $bool = null){
-        if($bool){
+        if($str == 'true'){
             return 2; // take out
         }else {
             return 1; // dine in
@@ -82,5 +82,21 @@ class OrderSlipDetail extends Model
             ->where('branch_id', config('settings.branch_id'))
             ->get();
     }
+
+    public function getNewSequence($branch_id, $header_id, $product_id){
+        $result = static::where('branch_id', $branch_id)
+                    ->where('orderslip_header_id',$header_id)
+                    ->where('product_id',$product_id) 
+                    ->orderBy('encoded_date','desc')
+                    ->first();
+        if(is_null($result)){
+            return 1;
+        }else{
+            return $result->sequence+1;
+        } 
+    }
+
+    
+
     
 }

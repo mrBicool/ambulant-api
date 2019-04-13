@@ -58,7 +58,7 @@ class OrderSlipController extends Controller
             } 
             
             // save each of item in slipdetails  
-            $osd = new OrderSlipDetail;
+            $osd = new OrderSlipDetail;  
             $osd->orderslip_detail_id           = $osd->getNewId();
             $osd->orderslip_header_id           = $osh->orderslip_header_id;
             $osd->branch_id                     = config('settings.branch_id');
@@ -76,13 +76,13 @@ class OrderSlipController extends Controller
             $osd->main_product_comp_qty         = $request->main_product_comp_qty;
             $osd->part_number                   = $request->part_number; 
             $osd->encoded_date                  = now();
+            $osd->sequence                      = $osd->getNewSequence( config('settings.branch_id'), $osh->orderslip_header_id, $request->product_id );
             $osd->save();
             
             if( isset($request->others) ){
-                foreach( $request->others as $other){
-
+                foreach( $request->others as $other){ 
                     $other = (object)$other; 
-                    $osd2 = new OrderSlipDetail; 
+                    $osd2 = new OrderSlipDetail;  
                     $osd2->orderslip_detail_id           = $osd2->getNewId();
                     $osd2->orderslip_header_id           = $osh->orderslip_header_id;
                     $osd2->branch_id                     = config('settings.branch_id');
@@ -100,6 +100,7 @@ class OrderSlipController extends Controller
                     $osd2->main_product_comp_qty         = $other->main_product_component_qty;
                     $osd2->part_number                   = $other->part_number;
                     $osd2->encoded_date                  = now();
+                    $osd2->sequence                      = $osd->sequence;
                     $osd2->save(); 
 
                     if( isset($other->others) ){
@@ -123,6 +124,7 @@ class OrderSlipController extends Controller
                             $osd3->main_product_comp_qty         = $other->main_product_component_qty;
                             $osd3->part_number                   = $other2->part_number;
                             $osd3->encoded_date                  = now();
+                            $osd3->sequence                      = $osd->sequence;
                             $osd3->save(); 
                         }
                     }
