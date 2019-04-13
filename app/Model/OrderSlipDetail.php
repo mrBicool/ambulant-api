@@ -45,6 +45,7 @@ class OrderSlipDetail extends Model
 
     protected $getterMutators = [
         'part_number' => 'trim', 
+        'order_type' => 'trim'
     ];
 
     /**
