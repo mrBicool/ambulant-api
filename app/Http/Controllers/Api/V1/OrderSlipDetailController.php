@@ -37,4 +37,12 @@ class OrderSlipDetailController extends Controller
             ]);
         }
     }
+    
+    public function getByHeader(Request $request){
+
+        return response()->json(
+            $request->all()
+        );
+        
+    }
 }

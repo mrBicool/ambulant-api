@@ -52,6 +52,7 @@ Route::namespace('Api\V1')->group(function () {
             Route::patch('/orderslip/header',           'OrderSlipHeaderController@update');
 
             Route::delete('/orderslip/details',         'OrderSlipDetailController@destroy');
+            Route::get('/orderslip/details',            'OrderSlipDetailController@getByHeader');
 
             // customer
             Route::get('/customer/search',              'CustomerController@search');
