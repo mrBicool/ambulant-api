@@ -8,9 +8,10 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
 use App\Model\OrderSlipHeader;
-use App\Http\Resources\OrderSlipHeader as OrderSlipHeaderResource;
-use App\Http\Resources\OrderSlipDetailCollection;
 use App\Model\OrderSlipDetail;
+use App\Http\Resources\OrderSlipHeader as OrderSlipHeaderResource;
+use App\Http\Resources\OrderSlipDetailCollection; 
+use App\Http\Resources\OrderSlipHeaderCollection; 
 use Illuminate\Support\Facades\Auth;
 use App\Library\Helper;
 
@@ -57,6 +58,7 @@ class OrderSlipController extends Controller
                 $osh = $aso;
             } 
             
+            $net_amount = 0;
             // save each of item in slipdetails  
             $osd = new OrderSlipDetail;  
             $osd->orderslip_detail_id           = $osd->getNewId();
@@ -78,6 +80,8 @@ class OrderSlipController extends Controller
             $osd->encoded_date                  = now();
             $osd->sequence                      = $osd->getNewSequence( config('settings.branch_id'), $osh->orderslip_header_id, $request->product_id );
             $osd->save();
+            $net_amount += $osd->net_amount;
+
             
             if( isset($request->others) ){
                 foreach( $request->others as $other){ 
@@ -102,6 +106,7 @@ class OrderSlipController extends Controller
                     $osd2->encoded_date                  = now();
                     $osd2->sequence                      = $osd->sequence;
                     $osd2->save(); 
+                    $net_amount += $osd2->net_amount;
 
                     if( isset($other->others) ){
                         foreach( $other->others as $other2){
@@ -126,12 +131,15 @@ class OrderSlipController extends Controller
                             $osd3->encoded_date                  = now();
                             $osd3->sequence                      = $osd->sequence;
                             $osd3->save(); 
+                            $net_amount += $osd3->net_amount;
                         }
                     }
                 }
             }
 
             //save the total into OrderSlipHeader
+            OrderSlipHeader::where('orderslip_header_id',$osh->orderslip_header_id)
+                ->update(['NETAMOUNT'=> $net_amount]);
   
             // commit all changes
             DB::commit(); 
@@ -179,6 +187,9 @@ class OrderSlipController extends Controller
                 $details = $details->groupBy(['main_product_id','sequence']); //
             } 
 
+            // commit all changes
+            DB::commit(); 
+
             return response()->json([
                 'success'   => true,
                 'status'    => 200,
@@ -197,5 +208,138 @@ class OrderSlipController extends Controller
                 'message'   => $e->getMessage() 
             ]);
         }
+    }
+
+    /**
+     * @param Request
+     * @return 
+     */
+    public function markAsDone(Request $request){
+        try{
+
+            // begin transaction
+            DB::beginTransaction();  
+                
+
+            // update header status to P
+            OrderSlipHeader::where('orderslip_header_id',$request->orderslip_id)
+                ->where('branch_id', config('settings.branch_id'))
+                ->update([
+                    'STATUS' => 'P'
+                ]);
+
+            // update details status to P
+            OrderSlipDetail::where('orderslip_header_id', $request->orderslip_id)
+                ->where('branch_id', config('settings.branch_id'))
+                ->update([
+                    'STATUS' => 'P'
+                ]);
+
+            // commit all changes
+            DB::commit(); 
+            return response()->json([
+                'success'   => true,
+                'status'    => 200,
+                'message'   => 'Marked as done successfully'
+            ]);
+
+        }catch( \Exception $e){
+            DB::rollBack();
+            Log::error($e->getMessage());
+            return response()->json([
+                'success'   => false,
+                'status'    => 500,
+                'message'   => $e->getMessage() 
+            ]);
+        }
+    }
+
+    /**
+     * @return
+     */
+    public function pendingByOutlet(Request $request){
+
+        $helper = new Helper;
+        $result = OrderSlipHeader::where('status', 'P')
+                    ->orWhere('status', 'B')
+                    ->where('outlet_id', $request->outlet_id)  
+                    ->orderBy('status')
+                    ->orderBy('created_at','desc')
+                    ->get();
+
+        $result = new OrderSlipHeaderCollection($result);
+        //$result = $result->groupBy('status');
+        return response()->json([
+            'success' => true,
+            'status' => 200,
+            'result' => $result
+        ]);
+    }
+
+    /**
+     * @return
+     */
+    public function completedByOutlet(Request $request){
+        $result = OrderSlipHeader::where('status', 'C') 
+                    ->where('outlet_id', $request->outlet_id) 
+                    ->orderBy('created_at','desc')
+                    ->get();
+
+        $result = new OrderSlipHeaderCollection($result);
+        
+        return response()->json([
+            'success'   => true,
+            'status'    => 200,
+            'result'    => $result
+        ]);
+    }
+
+    public function changeOs(Request $request){
+        try{
+
+            // begin transaction
+            DB::beginTransaction();
+
+            $user = Auth::user(); 
+            // check for current orderslip
+            $osh = new OrderSlipHeader;
+            $result = $osh->getActiveOrder($user->_id); 
+                // if yes, change the status to 'P'
+                if($result){
+                    OrderSlipHeader::where('orderslip_header_id', $result->orderslip_header_id)
+                        ->update([
+                            'STATUS' => 'P'
+                        ]);
+                }
+                
+            // change the encoded by and name to current user
+            OrderSlipHeader::where('orderslip_header_id', $request->header_id)
+                ->update([
+                    'PREPAREDBY' => $user->name,
+                    'CCENAME'   => $user->name,
+                    'ENCODEDBY' => $user->_id,
+                    'STATUS'    => 'B'
+                ]);  
+
+            // commit all changes
+            DB::commit(); 
+            return response()->json([
+                'success'   => true,
+                'status'    => 200,
+                'message'   => 'Success'
+            ]);
+
+        
+        }catch( \Exception $e){
+            DB::rollBack();
+            Log::error($e->getMessage());
+            return response()->json([
+                'success'   => false,
+                'status'    => 500,
+                'message'   => $e->getMessage() 
+            ]);
+        }
+        
+        
     }
 }

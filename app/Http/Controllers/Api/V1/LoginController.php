@@ -64,8 +64,7 @@ class LoginController extends Controller
                 ]);
             }
 
-            // create a token for this user
-            
+            // create a token for this user 
             $user->api_token    = $helper->createToken($token);
             $user->update();
               

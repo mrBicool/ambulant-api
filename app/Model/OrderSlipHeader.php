@@ -42,8 +42,11 @@ class OrderSlipHeader extends Model
     ];
     
     protected $getterMutators = [
-        'prepared_by' => 'trim',
-        'cce_name' => 'trim'
+        'prepared_by'       => 'trim',
+        'cce_name'          => 'trim',
+        'customer_name'     => 'trim',
+        'customer_id'       => 'trim',
+        'mobile_number'     => 'trim'
     ];
 
     //logic
@@ -67,6 +70,14 @@ class OrderSlipHeader extends Model
     public function getMaps(){
     	return $this->maps;
     }
+
+    public function removeByHeaderIdAndBranchId($header_id, $branch_id){
+        return static::where('orderslip_header_id', $header_id)
+            ->where('branch_id', $branch_id)
+            ->delete();
+    }
+
+     
 
     //relationship
     public function transType(){

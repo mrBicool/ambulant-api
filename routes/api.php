@@ -38,21 +38,25 @@ Route::namespace('Api\V1')->group(function () {
             Route::post('/outlet/category/sub-category/products', 'PartLocationController@byGroupAndCategory');
             
             // product
-            Route::post('/product', 'PartLocationController@productByOutlet');
-            Route::post('/product/components', 'PartLocationController@productComponents');
-            Route::post('/product/component/categories', 'PartLocationController@productByCategory');
+            Route::post('/product',                     'PartLocationController@productByOutlet');
+            Route::post('/product/components',          'PartLocationController@productComponents');
+            Route::post('/product/component/categories','PartLocationController@productByCategory');
 
-            Route::post('/orderslip', 'OrderSlipController@store');
-            Route::get('/orderslip/active', 'OrderSlipController@getActiveOrder');
+            Route::post('/orderslip',                   'OrderSlipController@store');
+            Route::get('/orderslip/active',             'OrderSlipController@getActiveOrder');
+            Route::patch('/orderslip/mark-as-done',     'OrderSlipController@markAsDone');
+            Route::get('/orderslip/pending',            'OrderSlipController@pendingByOutlet'); 
+            Route::get('/orderslip/completed',          'OrderSlipController@completedByOutlet');
+            Route::patch('/orderslip/change-os',        'OrderSlipController@changeOs');
 
-            Route::patch('/orderslip/header', 'OrderSlipHeaderController@update');
+            Route::patch('/orderslip/header',           'OrderSlipHeaderController@update');
 
-            Route::delete('/orderslip/details', 'OrderSlipDetailController@destroy');
+            Route::delete('/orderslip/details',         'OrderSlipDetailController@destroy');
 
             // customer
-            Route::get('/customer/search', 'CustomerController@search');
+            Route::get('/customer/search',              'CustomerController@search');
 
-            Route::post('/logout', 'LoginController@logout');
+            Route::post('/logout',                      'LoginController@logout');
         });
     });
 

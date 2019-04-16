@@ -96,7 +96,11 @@ class OrderSlipDetail extends Model
         } 
     }
 
-    
+    public function removeByHeaderIdAndBranchId($header_id, $branch_id){
+        return static::where('orderslip_header_id', $header_id)
+            ->where('branch_id', $branch_id)
+            ->delete();
+    }
 
     
 }

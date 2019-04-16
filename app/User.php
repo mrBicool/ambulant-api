@@ -49,6 +49,7 @@ class User extends Authenticatable
      * Model Mapping
      */
     protected $maps = [  
+        '_id'             => 'ID',
         'username'        => 'NUMBER', 
         'password'        => 'PW',
         'api_token'       => 'TOKEN',
