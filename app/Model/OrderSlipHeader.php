@@ -27,7 +27,7 @@ class OrderSlipHeader extends Model
 		'total_amount'			=> 'TOTALAMOUNT',
 		'discount_amount'		=> 'DISCOUNT',
 		'net_amount' 			=> 'NETAMOUNT',
-		'status' 				=> 'STATUS',    // [ 'P' => 'Pending', 'C' => 'Completed'. 'CS' => 'CurrentSelected' ]
+		'status' 				=> 'STATUS',    // [ 'P' => 'Pending', 'C' => 'Completed'. 'B' => 'CurrentSelected' ]
 		'customer_id' 			=> 'CUSTOMERCODE',
 		'mobile_number' 		=> 'CELLULARNUMBER',
 		'customer_name' 		=> 'CUSTOMERNAME',
@@ -76,8 +76,6 @@ class OrderSlipHeader extends Model
             ->where('branch_id', $branch_id)
             ->delete();
     }
-
-     
 
     //relationship
     public function transType(){
