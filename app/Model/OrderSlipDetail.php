@@ -102,5 +102,16 @@ class OrderSlipDetail extends Model
             ->delete();
     }
 
+    public function getSingleOrder(
+        $header_id,
+        $main_product_id,
+        $sequence
+    ){
+        return static::where('branch_id', config('settings.branch_id'))
+            ->where('orderslip_header_id',$header_id)
+            ->where('main_product_id', $main_product_id)
+            ->where('sequence', $sequence)
+            ->get(); 
+    }
     
 }

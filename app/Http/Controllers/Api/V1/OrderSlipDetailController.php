@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
 use App\Model\OrderSlipDetail;
+use App\Http\Resources\OrderSlipDetailCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -27,6 +28,7 @@ class OrderSlipDetailController extends Controller
                 'status'    => 200, 
                 'message'   => 'Removed Successfully'
             ]); 
+
         }catch( \Exception $e){
             DB::rollBack();
             Log::error($e->getMessage());
@@ -38,11 +40,29 @@ class OrderSlipDetailController extends Controller
         }
     }
     
-    public function getByHeader(Request $request){
-
-        return response()->json(
-            $request->all()
-        );
+    public function getByHeader(Request $request){ 
         
+        try{
+            $osd = new OrderSlipDetail; 
+            $result = $osd->getSingleOrder(
+                $request->header_id,
+                $request->main_product_id,
+                $request->sequence
+            );
+
+            return response()->json([
+                'success'   => true,
+                'status'    => 200,
+                'result'    => new OrderSlipDetailCollection($result)
+            ]);
+
+        }catch( \Exception $e){ 
+            Log::error($e->getMessage());
+            return response()->json([
+                'success'   => false,
+                'status'    => 500,
+                'message'   => $e->getMessage() 
+            ]);
+        }
     }
 }

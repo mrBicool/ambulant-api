@@ -22,7 +22,7 @@ class OrderSlipHeader extends Model
     protected $maps = [  
       // simple alias
 	    'orderslip_header_id'	=> 'ORDERSLIPNO',
-		'branch_id' 			=> 'BRANCHID', 
+		'branch_id' 			=> 'BRANCHID',
 		'transaction_type_id'	=> 'TRANSACTTYPEID',
 		'total_amount'			=> 'TOTALAMOUNT',
 		'discount_amount'		=> 'DISCOUNT',
@@ -80,5 +80,5 @@ class OrderSlipHeader extends Model
     //relationship
     public function transType(){
         return $this->belongsTo('App\TransactionType', $this->maps['transaction_type_id']);
-    } 
+    }
 }
