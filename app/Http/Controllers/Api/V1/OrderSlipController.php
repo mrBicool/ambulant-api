@@ -277,7 +277,7 @@ class OrderSlipController extends Controller
     }
 
     /**
-     * @return
+     * @return json
      */
     public function completedByOutlet(Request $request){
         $result = OrderSlipHeader::where('status', 'C') 
@@ -341,5 +341,141 @@ class OrderSlipController extends Controller
         }
         
         
+    }
+
+    /**
+     * @param Request
+     * @json string [data, header_id, main_product_id, sequence]
+     * @return json 
+     */
+    public function update(Request $request){ 
+
+        try{
+
+            // begin transaction
+            DB::beginTransaction();
+
+            $jsonOjb = json_decode($request->data); 
+            $branch_id = config('settings.branch_id');
+
+            // # TODO
+            // // remove all items in detail
+            $old_osd = new OrderSlipDetail;
+            $old_osd->removeByHeaderIdAndBranchId($jsonOjb->header_id, $branch_id);
+
+
+            // // save new items detail 
+            $orders = $jsonOjb->data; 
+            $net_amount = 0;
+            // save each of item in slipdetails  
+            $osd = new OrderSlipDetail;  
+            $osd->orderslip_detail_id           = $osd->getNewId();
+            $osd->orderslip_header_id           = $jsonOjb->header_id;
+            $osd->branch_id                     = $branch_id;
+            $osd->remarks                       = $orders->instruction; 
+            $osd->order_type                    = $osd->getOrderTypeValue($orders->is_take_out);
+            $osd->product_id                    = $orders->product_id;
+            $osd->qty                           = $orders->qty;
+            $osd->srp                           = $orders->price;
+            $osd->amount                        = $orders->qty * $orders->price;
+            $osd->net_amount                    = $orders->qty * $orders->price;
+            $osd->status                        = 'B';
+            $osd->postmix_id                    = $orders->main_product_id;
+            $osd->main_product_id               = $orders->main_product_id;
+            $osd->main_product_comp_id          = $orders->main_product_component_id;
+            $osd->main_product_comp_qty         = $orders->main_product_component_qty;
+            $osd->part_number                   = $orders->part_number; 
+            $osd->encoded_date                  = now();
+            $osd->sequence                      = $osd->getNewSequence( $branch_id, $jsonOjb->header_id, $orders->product_id );
+            $osd->save();
+
+            $net_amount += $osd->net_amount;
+
+            if( isset($orders->others) ){
+                foreach( $orders->others as $other){ 
+                    $other = (object)$other; 
+                    $osd2 = new OrderSlipDetail;  
+                    $osd2->orderslip_detail_id           = $osd2->getNewId();
+                    $osd2->orderslip_header_id           = $jsonOjb->header_id;
+                    $osd2->branch_id                     = $branch_id;
+                    $osd2->remarks                       = $orders->instruction; 
+                    $osd2->order_type                    = $osd2->getOrderTypeValue($orders->is_take_out);
+                    $osd2->product_id                    = $other->product_id;
+                    $osd2->qty                           = $other->qty;
+                    $osd2->srp                           = $other->price;
+                    $osd2->amount                        = $other->qty * $other->price;
+                    $osd2->net_amount                    = $other->qty * $other->price;
+                    $osd2->status                        = 'B';
+                    $osd2->postmix_id                    = $other->main_product_id;
+                    $osd2->main_product_id               = $other->main_product_id;
+                    $osd2->main_product_comp_id          = $other->main_product_component_id;
+                    $osd2->main_product_comp_qty         = $other->main_product_component_qty;
+                    $osd2->part_number                   = $other->part_number;
+                    $osd2->encoded_date                  = now();
+                    $osd2->sequence                      = $osd->sequence;
+                    $osd2->save(); 
+                    $net_amount += $osd2->net_amount;
+
+                    if( isset($other->others) ){
+                        foreach( $other->others as $other2){
+                            $other2 = (object)$other2;  
+                            $osd3 = new OrderSlipDetail; 
+                            $osd3->orderslip_detail_id           = $osd3->getNewId();
+                            $osd3->orderslip_header_id           = $jsonOjb->header_id;
+                            $osd3->branch_id                     = $branch_id;
+                            $osd3->remarks                       = $request->instruction; 
+                            $osd3->order_type                    = $osd3->getOrderTypeValue($orders->is_take_out);
+                            $osd3->product_id                    = $other2->product_id;
+                            $osd3->qty                           = $other2->qty;
+                            $osd3->srp                           = $other2->price;
+                            $osd3->amount                        = $other2->qty * $other2->price;
+                            $osd3->net_amount                    = $other2->qty * $other2->price;
+                            $osd3->status                        = 'B';
+                            $osd3->postmix_id                    = $other2->main_product_id;
+                            $osd3->main_product_id               = $other2->main_product_id;
+                            $osd3->main_product_comp_id          = $other2->main_product_component_id;
+                            $osd3->main_product_comp_qty         = $other->main_product_component_qty;
+                            $osd3->part_number                   = $other2->part_number;
+                            $osd3->encoded_date                  = now();
+                            $osd3->sequence                      = $osd->sequence;
+                            $osd3->save(); 
+                            $net_amount += $osd3->net_amount;
+                        }
+                    }
+                }
+            }
+
+            //save the total into OrderSlipHeader
+            OrderSlipHeader::where('orderslip_header_id', $jsonOjb->header_id)
+                ->update(['NETAMOUNT'=> $net_amount]);
+
+
+            // commit all changes
+            DB::commit(); 
+
+            // return response()->json([
+            //     'request'   => $jsonOjb,
+            //     'orders'    => $orders,
+            //     '1' => $orders->main_product_component_id,
+            //     '2' => $orders->main_product_component_qty,
+            //     '3' => $orders->main_product_id
+            // ]);
+
+            return response()->json([
+                'success'   => true,
+                'status'    => 200,
+                'message'   => 'Success'
+            ]);
+
+        }catch( \Exception $e){
+            DB::rollBack();
+            Log::error($e->getMessage());
+            return response()->json([
+                'success'   => false,
+                'status'    => 500,
+                'message'   => $e->getMessage()
+            ]);
+        } 
+
     }
 }

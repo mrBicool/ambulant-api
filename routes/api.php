@@ -42,7 +42,9 @@ Route::namespace('Api\V1')->group(function () {
             Route::post('/product/components',          'PartLocationController@productComponents');
             Route::post('/product/component/categories','PartLocationController@productByCategory');
 
+            // orderslip
             Route::post('/orderslip',                   'OrderSlipController@store');
+            Route::patch('/orderslip',                  'OrderSlipController@update');
             Route::get('/orderslip/active',             'OrderSlipController@getActiveOrder');
             Route::patch('/orderslip/mark-as-done',     'OrderSlipController@markAsDone');
             Route::get('/orderslip/pending',            'OrderSlipController@pendingByOutlet'); 
