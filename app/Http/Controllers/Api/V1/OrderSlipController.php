@@ -361,7 +361,11 @@ class OrderSlipController extends Controller
             // # TODO
             // // remove all items in detail
             $old_osd = new OrderSlipDetail;
-            $old_osd->removeByHeaderIdAndBranchId($jsonOjb->header_id, $branch_id);
+            $old_osd->removeByHeaderIdAndBranchId(
+                    $jsonOjb->header_id, 
+                    $branch_id,
+                    $jsonOjb->sequence
+                );
 
 
             // // save new items detail 
