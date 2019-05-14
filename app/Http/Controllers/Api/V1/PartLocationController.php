@@ -43,7 +43,7 @@ class PartLocationController extends Controller
                 )
             )->get();
 
-        $val = config('custom.group_not_to_display');
+        $val = config('settings.group_not_to_display');
         $val = explode(',',$val);
 
         $groups = $pl->unique('group')
