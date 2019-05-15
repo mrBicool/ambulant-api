@@ -60,7 +60,7 @@ class PartLocation extends Model
     }
 
     public function postmixNoneModifiableComponents(){ 
-       return $this->hasMany('App\Model\Postmix','PRODUCT_ID','PRODUCT _ID')
+       return $this->hasMany('App\Model\Postmix','PRODUCT_ID','PRODUCT_ID')
             ->where('MODIFIABLE',0);
     }
 

@@ -38,9 +38,9 @@ Route::namespace('Api\V1')->group(function () {
             Route::post('/outlet/category/sub-category/products', 'PartLocationController@byGroupAndCategory');
             
             // product
-            Route::post('/product',                     'PartLocationController@productByOutlet');
-            Route::post('/product/components',          'PartLocationController@productComponents');
-            Route::post('/product/component/categories','PartLocationController@productByCategory');
+            Route::post('/product',                                     'PartLocationController@productByOutlet');
+            Route::post('/product/components',                          'PartLocationController@productComponents');
+            Route::post('/product/component/categories',                'PartLocationController@productByCategory');
 
             // orderslip
             Route::post('/orderslip',                   'OrderSlipController@store');

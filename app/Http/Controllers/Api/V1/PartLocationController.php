@@ -153,10 +153,35 @@ class PartLocationController extends Controller
 
     public function productComponents(Request $request){
         $product_id = $request->product_id;
+        $outlet_id  = $request->outlet_id;  
+
+        $pl = PartLocation::byProductAndOutlet($product_id,$outlet_id);  
+        if( $request->group_by == 'mc' ){ // modifiable component
+            $pl = $pl->postmixModifiableComponents()->paginate();  
+        }else if( $request->group_by == 'nmc'){ // non modifiable component
+            $pl = $pl->postmixNoneModifiableComponents()->paginate(); 
+        }else{
+            return response()->json([
+                'success'   => false,
+                'status'    => 400,
+                'message'   => 'No Group has been set'
+            ]);
+        }
+
+        $result = new PostmixCollection($pl);  
+        return response()->json([
+            'success'   => true,
+            'status'    => 200,
+            'result'    => $result
+        ]);
+    }
+
+    public function nonModifiable(Request $request){
+        $product_id = $request->product_id;
         $outlet_id  = $request->outlet_id; 
 
         $pl = PartLocation::byProductAndOutlet($product_id,$outlet_id); 
-        $pl = $pl->postmixModifiableComponents()->paginate();  
+        $pl = $pl->postmixNoneModifiableComponents()->paginate();  
         $result = new PostmixCollection($pl); 
 
         return response()->json([
@@ -165,6 +190,8 @@ class PartLocationController extends Controller
             'result'    => $result
         ]);
     }
+
+
 
     public function productByCategory(Request $request){ 
 
