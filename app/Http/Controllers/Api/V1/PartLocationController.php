@@ -201,7 +201,7 @@ class PartLocationController extends Controller
         $pl     = PartLocation::where('product_id',$product_id)
                     ->where('outlet_id', $outlet_id)
                     ->first();
-
+        dd($pl);
         $pls    = PartLocation::byCategoryOfProductPerOutlet(
                         $pl->category_id,
                         $pl->product_id,
