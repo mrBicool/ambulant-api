@@ -14,6 +14,7 @@ use App\Http\Resources\OrderSlipDetailCollection;
 use App\Http\Resources\OrderSlipHeaderCollection; 
 use Illuminate\Support\Facades\Auth;
 use App\Library\Helper;
+use App\Model\BranchLastIssuedNumber;
 
 class OrderSlipController extends Controller
 {
@@ -22,11 +23,12 @@ class OrderSlipController extends Controller
         try{
             
             // init
-            $helper = new Helper;
-            $osh = new OrderSlipHeader;
-            $user = Auth::user();
-            $isOnDuty = $user->isOnDuty($helper->getClarionDate(now()));
-            
+            $helper     = new Helper;
+            $osh        = new OrderSlipHeader;
+            $user       = Auth::user(); 
+            $isOnDuty   = $user->isOnDuty($helper->getClarionDate(now()));
+
+            $blin       = BranchLastIssuedNumber::first(); 
 
             // begin transaction
             DB::beginTransaction();
@@ -386,7 +388,7 @@ class OrderSlipController extends Controller
             DB::beginTransaction();
 
             $jsonOjb = json_decode($request->data); 
-            $branch_id = config('settings.branch_id');
+            $branch_id = config('settings.branch_id'); 
 
             // # TODO
             // // remove all items in detail
@@ -394,7 +396,8 @@ class OrderSlipController extends Controller
             $old_osd->removeByHeaderIdAndBranchId(
                     $jsonOjb->header_id, 
                     $branch_id,
-                    $jsonOjb->sequence
+                    $jsonOjb->sequence,
+                    $jsonOjb->main_product_id
                 );
 
 
@@ -412,7 +415,7 @@ class OrderSlipController extends Controller
             $osd->qty                           = $orders->qty;
             $osd->srp                           = $orders->price;
             $osd->amount                        = $orders->qty * $orders->price;
-            $osd->net_amount                    = $orders->qty * $orders->price;
+            $osd->net_amount                    = $orders->qty * $orders->price; 
             $osd->status                        = 'B';
             $osd->postmix_id                    = $orders->main_product_id;
             $osd->main_product_id               = $orders->main_product_id;
@@ -439,6 +442,7 @@ class OrderSlipController extends Controller
                     $osd2->srp                           = $other->price;
                     $osd2->amount                        = $other->qty * $other->price;
                     $osd2->net_amount                    = $other->qty * $other->price;
+                    $osd2->is_modify                     = 1;
                     $osd2->status                        = 'B';
                     $osd2->postmix_id                    = $other->main_product_id;
                     $osd2->main_product_id               = $other->main_product_id;
@@ -464,6 +468,7 @@ class OrderSlipController extends Controller
                             $osd3->srp                           = $other2->price;
                             $osd3->amount                        = $other2->qty * $other2->price;
                             $osd3->net_amount                    = $other2->qty * $other2->price;
+                            $osd3->is_modify                     = 1;
                             $osd3->status                        = 'B';
                             $osd3->postmix_id                    = $other2->main_product_id;
                             $osd3->main_product_id               = $other2->main_product_id;
@@ -479,21 +484,40 @@ class OrderSlipController extends Controller
                 }
             }
 
+            // saving none modifiable component
+            if( isset($jsonOjb->none_modifiable_component) ){
+                foreach( $jsonOjb->none_modifiable_component as $nmc){  
+                    $_osd = new OrderSlipDetail;  
+                    $_osd->orderslip_detail_id           = $_osd->getNewId();
+                    $_osd->orderslip_header_id           = $jsonOjb->header_id;
+                    $_osd->branch_id                     = config('settings.branch_id');
+                    $_osd->remarks                       = $osd->remarks; 
+                    $_osd->order_type                    = $_osd->getOrderTypeValue($orders->is_take_out);
+                    $_osd->product_id                    = $nmc->product_id;
+                    $_osd->qty                           = ($nmc->quantity * $osd->qty);
+                    $_osd->srp                           = 0;
+                    $_osd->amount                        = $_osd->qty * $_osd->srp;
+                    $_osd->net_amount                    = $_osd->qty * $_osd->srp;
+                    $_osd->is_modify                     = 0;
+                    $_osd->status                        = 'B';
+                    $_osd->postmix_id                    = $osd->product_id;
+                    $_osd->main_product_id               = $osd->product_id;
+                    $_osd->main_product_comp_id          = $_osd->product_id;
+                    $_osd->main_product_comp_qty         = $_osd->qty;
+                    $_osd->part_number                   = $nmc->product_partno;
+                    $_osd->encoded_date                  = now();
+                    $_osd->sequence                      = $osd->sequence;
+                    $_osd->save(); 
+                }
+            }
+
             //save the total into OrderSlipHeader
             OrderSlipHeader::where('orderslip_header_id', $jsonOjb->header_id)
                 ->update(['NETAMOUNT'=> $net_amount]);
 
 
             // commit all changes
-            DB::commit(); 
-
-            // return response()->json([
-            //     'request'   => $jsonOjb,
-            //     'orders'    => $orders,
-            //     '1' => $orders->main_product_component_id,
-            //     '2' => $orders->main_product_component_qty,
-            //     '3' => $orders->main_product_id
-            // ]);
+            DB::commit();  
 
             return response()->json([
                 'success'   => true,
@@ -512,4 +536,33 @@ class OrderSlipController extends Controller
         } 
 
     }
+
+    private function saveToKitchen(
+        $ko_id,$header_id,$detail_id,
+        $part_id,$comp_id,$location_id,$qty){
+
+        $helper     = new Helper;
+        $ko = new KitchenOrder;
+        $ko->branch_id          = config('custom.branch_id');
+        $ko->ko_id              = $ko_id;
+        $ko->transact_type      = 1;
+        $ko->header_id          = $header_id;
+        $ko->detail_id          = $detail_id;
+        $ko->part_id            = $part_id;
+        $ko->comp_id            = $comp_id;
+        $ko->location_id        = $location_id;
+        $ko->qty                = $qty;
+        $ko->balance            = $qty;
+        $ko->status             = 'P';
+        
+        $now = now();
+        $ko->created_at         = $now;
+        $ko->created_date       = $helper->getClarionDate($now);
+        $ko->created_time       = $helper->getClarionTime($now);
+
+        $ko->save();
+        return $ko;
+    }
+
+
 }

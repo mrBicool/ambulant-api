@@ -55,6 +55,12 @@ class OrderSlipDetail extends Model
         return $this->belongsTo('App\Model\Part','product_id');
     }
 
+    public function sitePart(){
+        return $this->belongsTo('App\Model\SitePart','product_id');
+    }
+
+
+
     /**
      * Logic
      */
@@ -96,10 +102,11 @@ class OrderSlipDetail extends Model
         } 
     }
 
-    public function removeByHeaderIdAndBranchId($header_id, $branch_id, $sequence){
+    public function removeByHeaderIdAndBranchId($header_id, $branch_id, $sequence, $main_product_id){
         return static::where('orderslip_header_id', $header_id)
             ->where('branch_id', $branch_id)
             ->where('sequence', $sequence)
+            ->where('main_product_id', $main_product_id)
             ->delete();
     }
 
