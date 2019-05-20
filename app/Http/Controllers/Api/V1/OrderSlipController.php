@@ -20,7 +20,7 @@ class OrderSlipController extends Controller
     //
     public function store(Request $request){ 
         try{
-
+            
             // init
             $helper = new Helper;
             $osh = new OrderSlipHeader;
@@ -71,6 +71,7 @@ class OrderSlipController extends Controller
             $osd->srp                           = $request->price;
             $osd->amount                        = $request->qty * $request->price;
             $osd->net_amount                    = $request->qty * $request->price;
+            //$osd->is_modify                     = 1;
             $osd->status                        = 'B';
             $osd->postmix_id                    = $request->main_product_id;
             $osd->main_product_id               = $request->main_product_id;
@@ -80,6 +81,7 @@ class OrderSlipController extends Controller
             $osd->encoded_date                  = now();
             $osd->sequence                      = $osd->getNewSequence( config('settings.branch_id'), $osh->orderslip_header_id, $request->product_id );
             $osd->save();
+
             $net_amount += $osd->net_amount;
 
             
@@ -97,6 +99,7 @@ class OrderSlipController extends Controller
                     $osd2->srp                           = $other->price;
                     $osd2->amount                        = $other->qty * $other->price;
                     $osd2->net_amount                    = $other->qty * $other->price;
+                    $osd2->is_modify                     = 1;
                     $osd2->status                        = 'B';
                     $osd2->postmix_id                    = $other->main_product_id;
                     $osd2->main_product_id               = $other->main_product_id;
@@ -122,6 +125,7 @@ class OrderSlipController extends Controller
                             $osd3->srp                           = $other2->price;
                             $osd3->amount                        = $other2->qty * $other2->price;
                             $osd3->net_amount                    = $other2->qty * $other2->price;
+                            $osd3->is_modify                     = 1;
                             $osd3->status                        = 'B';
                             $osd3->postmix_id                    = $other2->main_product_id;
                             $osd3->main_product_id               = $other2->main_product_id;
@@ -134,6 +138,34 @@ class OrderSlipController extends Controller
                             $net_amount += $osd3->net_amount;
                         }
                     }
+                }
+            }
+
+            // saving none modifiable component
+            if( isset($request->none_modifiable_component) ){
+                foreach( $request->none_modifiable_component as $nmc){ 
+                    $nmc = (object)$nmc; 
+                    $_osd = new OrderSlipDetail;  
+                    $_osd->orderslip_detail_id           = $_osd->getNewId();
+                    $_osd->orderslip_header_id           = $osh->orderslip_header_id;
+                    $_osd->branch_id                     = config('settings.branch_id');
+                    $_osd->remarks                       = $request->instruction; 
+                    $_osd->order_type                    = $_osd->getOrderTypeValue($request->is_take_out);
+                    $_osd->product_id                    = $nmc->product_id;
+                    $_osd->qty                           = ($nmc->quantity * $osd->qty);
+                    $_osd->srp                           = 0;
+                    $_osd->amount                        = $_osd->qty * $_osd->srp;
+                    $_osd->net_amount                    = $_osd->qty * $_osd->srp;
+                    $_osd->is_modify                     = 0;
+                    $_osd->status                        = 'B';
+                    $_osd->postmix_id                    = $osd->product_id;
+                    $_osd->main_product_id               = $osd->product_id;
+                    $_osd->main_product_comp_id          = $_osd->product_id;
+                    $_osd->main_product_comp_qty         = $_osd->qty;
+                    $_osd->part_number                   = $nmc->product_partno;
+                    $_osd->encoded_date                  = now();
+                    $_osd->sequence                      = $osd->sequence;
+                    $_osd->save(); 
                 }
             }
 
@@ -165,26 +197,25 @@ class OrderSlipController extends Controller
     public function getActiveOrder(){
         try{
             // init
-            $helper = new Helper;
-            $osh = new OrderSlipHeader;
-            $osd = new OrderSlipDetail;
+            $helper     = new Helper;
+            $osh        = new OrderSlipHeader;
+            $osd        = new OrderSlipDetail;
 
-            $user = Auth::user();
-            $isOnDuty = $user->isOnDuty($helper->getClarionDate(now()));
+            $user       = Auth::user();
+            $isOnDuty   = $user->isOnDuty($helper->getClarionDate(now()));
             
-
             // begin transaction
             DB::beginTransaction();
 
             // check if this ambulant has an active sales order
-            $header = $osh->getActiveOrder($user->username);
-            $details = null; 
+            $header     = $osh->getActiveOrder($user->username);
+            $details    = null; 
 
             if($header){
-                $header = new OrderSlipHeaderResource($header);
-                $details = $osd->getByOrderSlipHeaderId($header->orderslip_header_id);
-                $details = new OrderSlipDetailCollection($details);
-                $details = $details->groupBy(['main_product_id','sequence']); //
+                $header     = new OrderSlipHeaderResource($header);
+                $details    = $osd->getByOrderSlipHeaderId($header->orderslip_header_id);
+                $details    = new OrderSlipDetailCollection($details);
+                $details    = $details->groupBy(['main_product_id','sequence']); //
             } 
 
             // commit all changes
@@ -218,8 +249,7 @@ class OrderSlipController extends Controller
         try{
 
             // begin transaction
-            DB::beginTransaction();  
-                
+            DB::beginTransaction();   
 
             // update header status to P
             OrderSlipHeader::where('orderslip_header_id',$request->orderslip_id)
