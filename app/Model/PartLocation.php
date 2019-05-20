@@ -55,13 +55,14 @@ class PartLocation extends Model
     }
     
     public function postmixModifiableComponents(){
-        return $this->hasMany('App\Model\Postmix','PRODUCT_ID','PRODUCT_ID')
-            ->where('MODIFIABLE',1);
+        return $this->hasMany('App\Model\Postmix','product_id','product_id')
+            ->where('modifiable',1);
     }
 
     public function postmixNoneModifiableComponents(){ 
-       return $this->hasMany('App\Model\Postmix','PRODUCT_ID','PRODUCT_ID')
-            ->where('MODIFIABLE',0);
+       return $this->hasMany('App\Model\Postmix','product_id','product_id')
+            ->where('modifiable',0)
+            ->where('display',1);
     }
 
      /**
