@@ -15,6 +15,8 @@ use App\Http\Resources\OrderSlipHeaderCollection;
 use Illuminate\Support\Facades\Auth;
 use App\Library\Helper;
 use App\Model\BranchLastIssuedNumber;
+use App\Model\SitePart;
+use App\Model\KitchenOrder;
 
 class OrderSlipController extends Controller
 {
@@ -28,7 +30,7 @@ class OrderSlipController extends Controller
             $user       = Auth::user(); 
             $isOnDuty   = $user->isOnDuty($helper->getClarionDate(now()));
 
-            $blin       = BranchLastIssuedNumber::first(); 
+            // $blin       = BranchLastIssuedNumber::first(); 
 
             // begin transaction
             DB::beginTransaction();
@@ -251,7 +253,39 @@ class OrderSlipController extends Controller
         try{
 
             // begin transaction
-            DB::beginTransaction();   
+            DB::beginTransaction();
+
+            // saving to kitchen
+            $blin       = BranchLastIssuedNumber::first();
+            $results    = OrderSlipDetail::where('orderslip_header_id', $request->orderslip_id)
+                            ->where('branch_id', config('settings.branch_id'))
+                            ->get(); 
+
+            foreach ($results as $key => $item) {
+                # code...
+               
+                $sp = SitePart::where('sitepart_id', $item->product_id)
+                    ->where('branch_id', config('settings.branch_id'))
+                    ->first();  
+                
+                if( strtolower($sp->parts_type) == 'y'){
+                    //dd($item,$sp);
+                    $blin->kitchen_order_no = $blin->kitchen_order_no + 1;
+                    $this->saveToKitchen(
+                        $blin->kitchen_order_no,
+                        $item->orderslip_header_id,
+                        $item->orderslip_detail_id,
+                        $item->product_id,
+                        $item->main_product_id,
+                        $sp->kitchen_loc,
+                        $item->qty,
+                        0
+                    );
+                    $blin->save();
+                }
+            }  
+
+            //dd('STOP');
 
             // update header status to P
             OrderSlipHeader::where('orderslip_header_id',$request->orderslip_id)
@@ -539,11 +573,11 @@ class OrderSlipController extends Controller
 
     private function saveToKitchen(
         $ko_id,$header_id,$detail_id,
-        $part_id,$comp_id,$location_id,$qty){
+        $part_id,$comp_id,$location_id,$qty,$is_paid){
 
         $helper     = new Helper;
         $ko = new KitchenOrder;
-        $ko->branch_id          = config('custom.branch_id');
+        $ko->branch_id          = config('settings.branch_id');
         $ko->ko_id              = $ko_id;
         $ko->transact_type      = 1;
         $ko->header_id          = $header_id;
@@ -551,15 +585,14 @@ class OrderSlipController extends Controller
         $ko->part_id            = $part_id;
         $ko->comp_id            = $comp_id;
         $ko->location_id        = $location_id;
-        $ko->qty                = $qty;
-        $ko->balance            = $qty;
+        $ko->qty                = (int)$qty;
+        $ko->balance            = (int)$qty;
         $ko->status             = 'P';
         
-        $now = now();
-        $ko->created_at         = $now;
+        $now = now(); 
         $ko->created_date       = $helper->getClarionDate($now);
         $ko->created_time       = $helper->getClarionTime($now);
-
+        $ko->is_paid            = $is_paid;
         $ko->save();
         return $ko;
     }
