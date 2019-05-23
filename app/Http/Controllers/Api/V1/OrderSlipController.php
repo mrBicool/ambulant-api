@@ -41,6 +41,7 @@ class OrderSlipController extends Controller
             $aso = $osh->getActiveOrder($user->username);
 
             // create slipheader
+            $line_number = 1;
             if( is_null($aso) ){
                 //$osh->orderslip_header_id       = $osh->getNewId();
                 $osh->orderslip_header_id       = $blin->getNewIdForOrderSlipHeader();
@@ -59,11 +60,13 @@ class OrderSlipController extends Controller
                 $osh->cce_name                  = $user->name;
                 $osh->total_hc                  = 1;
                 $osh->outlet_id                 = $isOnDuty->storeOutlet->outlet_id;
-                $osh->save();
-
+                $osh->save(); 
             }else{
-                $osh = $aso;
+                $osh = $aso; 
+
+                $line_number = OrderSlipDetail::getLastLineNumber($branch_id,$osh->orderslip_header_id)+1;
             } 
+            
             
             $net_amount = 0;
             // save each of item in slipdetails  
@@ -80,6 +83,8 @@ class OrderSlipController extends Controller
             $osd->amount                        = $request->qty * $request->price;
             $osd->net_amount                    = $request->qty * $request->price;
             //$osd->is_modify                     = 1;
+            $osd->line_number                   = $line_number;
+            $osd->order_no                      = $osd->line_number;
             $osd->status                        = 'B';
             $osd->postmix_id                    = $request->main_product_id;
             $osd->main_product_id               = $request->main_product_id;
@@ -91,7 +96,7 @@ class OrderSlipController extends Controller
             $osd->save();
 
             $net_amount += $osd->net_amount;
-
+            $line_number++;
             
             if( isset($request->others) ){
                 foreach( $request->others as $other){ 
@@ -108,6 +113,8 @@ class OrderSlipController extends Controller
                     $osd2->amount                        = $other->qty * $other->price;
                     $osd2->net_amount                    = $other->qty * $other->price;
                     $osd2->is_modify                     = 1;
+                    $osd2->line_number                   = $line_number;
+                    $osd2->order_no                      = $osd->line_number;
                     $osd2->status                        = 'B';
                     $osd2->postmix_id                    = $other->main_product_id;
                     $osd2->main_product_id               = $other->main_product_id;
@@ -118,7 +125,7 @@ class OrderSlipController extends Controller
                     $osd2->sequence                      = $osd->sequence;
                     $osd2->save(); 
                     $net_amount += $osd2->net_amount;
-
+                    $line_number++;
                     if( isset($other->others) ){
                         foreach( $other->others as $other2){
                             $other2 = (object)$other2;  
@@ -134,6 +141,8 @@ class OrderSlipController extends Controller
                             $osd3->amount                        = $other2->qty * $other2->price;
                             $osd3->net_amount                    = $other2->qty * $other2->price;
                             $osd3->is_modify                     = 1;
+                            $osd3->line_number                   = $line_number;
+                            $osd3->order_no                      = $osd->line_number;
                             $osd3->status                        = 'B';
                             $osd3->postmix_id                    = $other2->main_product_id;
                             $osd3->main_product_id               = $other2->main_product_id;
@@ -144,6 +153,7 @@ class OrderSlipController extends Controller
                             $osd3->sequence                      = $osd->sequence;
                             $osd3->save(); 
                             $net_amount += $osd3->net_amount;
+                            $line_number++;
                         }
                     }
                 }
@@ -165,6 +175,8 @@ class OrderSlipController extends Controller
                     $_osd->amount                        = $_osd->qty * $_osd->srp;
                     $_osd->net_amount                    = $_osd->qty * $_osd->srp;
                     $_osd->is_modify                     = 0;
+                    $_osd->line_number                   = $line_number;
+                    $_osd->order_no                      = $osd->line_number;
                     $_osd->status                        = 'B';
                     $_osd->postmix_id                    = $osd->product_id;
                     $_osd->main_product_id               = $osd->product_id;
@@ -174,6 +186,7 @@ class OrderSlipController extends Controller
                     $_osd->encoded_date                  = now();
                     $_osd->sequence                      = $osd->sequence;
                     $_osd->save(); 
+                    $line_number++;
                 }
             }
 

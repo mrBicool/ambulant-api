@@ -35,7 +35,8 @@ class OrderSlipDetail extends Model
 		'is_modify'				=> 'IS_MODIFY',
         'line_number'           => 'LINE_NO',
         'old_comp_id'           => 'OLD_COMP_ID',
-		'sequence' 			    => 'ORNO',
+        'order_no' 			    => 'ORNO',
+        'sequence'              => 'SEQUENCE',
 		'customer_id'			=> 'CUSTOMERCODE',
         'encoded_date'          => 'ENCODEDDATE', 
         'main_product_id'       => 'MAIN_PRODUCT_ID',
@@ -120,6 +121,19 @@ class OrderSlipDetail extends Model
             ->where('main_product_id', $main_product_id)
             ->where('sequence', $sequence)
             ->get(); 
+    }
+
+    public static function getLastLineNumber($branch_id, $os_id){
+        $result =  static::where('branch_id', $branch_id)
+            ->where('orderslip_header_id',$os_id) 
+            ->orderby('encoded_date','desc')
+            ->first(); 
+
+        if($result == null){
+            return 1;
+        }
+
+        return $result->line_number;
     }
     
 }
