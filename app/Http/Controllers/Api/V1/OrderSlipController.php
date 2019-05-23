@@ -18,6 +18,8 @@ use App\Model\BranchLastIssuedNumber;
 use App\Model\SitePart;
 use App\Model\KitchenOrder;
 
+use App\Services\BranchLastIssuedNumberServices as BLIN;
+
 class OrderSlipController extends Controller
 {
     //
@@ -29,8 +31,8 @@ class OrderSlipController extends Controller
             $osh        = new OrderSlipHeader;
             $user       = Auth::user(); 
             $isOnDuty   = $user->isOnDuty($helper->getClarionDate(now()));
-
-            // $blin       = BranchLastIssuedNumber::first(); 
+            $branch_id  = config('settings.branch_id'); 
+            $blin       = new BLIN($branch_id);
 
             // begin transaction
             DB::beginTransaction();
@@ -40,7 +42,8 @@ class OrderSlipController extends Controller
 
             // create slipheader
             if( is_null($aso) ){
-                $osh->orderslip_header_id       = $osh->getNewId();
+                //$osh->orderslip_header_id       = $osh->getNewId();
+                $osh->orderslip_header_id       = $blin->getNewIdForOrderSlipHeader();
                 $osh->branch_id                 = config('settings.branch_id');
                 $osh->transaction_type_id       = 1;
                 $osh->total_amount              = 0;
@@ -65,7 +68,8 @@ class OrderSlipController extends Controller
             $net_amount = 0;
             // save each of item in slipdetails  
             $osd = new OrderSlipDetail;  
-            $osd->orderslip_detail_id           = $osd->getNewId();
+            // $osd->orderslip_detail_id           = $osd->getNewId();
+            $osd->orderslip_detail_id           = $blin->getNewIdForOrderSlipDetails();
             $osd->orderslip_header_id           = $osh->orderslip_header_id;
             $osd->branch_id                     = config('settings.branch_id');
             $osd->remarks                       = $request->instruction; 
@@ -93,7 +97,7 @@ class OrderSlipController extends Controller
                 foreach( $request->others as $other){ 
                     $other = (object)$other; 
                     $osd2 = new OrderSlipDetail;  
-                    $osd2->orderslip_detail_id           = $osd2->getNewId();
+                    $osd2->orderslip_detail_id           = $blin->getNewIdForOrderSlipDetails();
                     $osd2->orderslip_header_id           = $osh->orderslip_header_id;
                     $osd2->branch_id                     = config('settings.branch_id');
                     $osd2->remarks                       = $request->instruction; 
@@ -119,7 +123,7 @@ class OrderSlipController extends Controller
                         foreach( $other->others as $other2){
                             $other2 = (object)$other2;  
                             $osd3 = new OrderSlipDetail; 
-                            $osd3->orderslip_detail_id           = $osd3->getNewId();
+                            $osd3->orderslip_detail_id           = $blin->getNewIdForOrderSlipDetails();
                             $osd3->orderslip_header_id           = $osh->orderslip_header_id;
                             $osd3->branch_id                     = config('settings.branch_id');
                             $osd3->remarks                       = $request->instruction; 
@@ -150,7 +154,7 @@ class OrderSlipController extends Controller
                 foreach( $request->none_modifiable_component as $nmc){ 
                     $nmc = (object)$nmc; 
                     $_osd = new OrderSlipDetail;  
-                    $_osd->orderslip_detail_id           = $_osd->getNewId();
+                    $_osd->orderslip_detail_id           = $blin->getNewIdForOrderSlipDetails();
                     $_osd->orderslip_header_id           = $osh->orderslip_header_id;
                     $_osd->branch_id                     = config('settings.branch_id');
                     $_osd->remarks                       = $request->instruction; 
@@ -255,8 +259,9 @@ class OrderSlipController extends Controller
             // begin transaction
             DB::beginTransaction();
 
-            // saving to kitchen
-            $blin       = BranchLastIssuedNumber::first();
+            // saving to kitchen 
+            $branch_id  = config('settings.branch_id'); 
+            $blin       = new BLIN($branch_id);
             $results    = OrderSlipDetail::where('orderslip_header_id', $request->orderslip_id)
                             ->where('branch_id', config('settings.branch_id'))
                             ->get(); 
@@ -267,12 +272,10 @@ class OrderSlipController extends Controller
                 $sp = SitePart::where('sitepart_id', $item->product_id)
                     ->where('branch_id', config('settings.branch_id'))
                     ->first();  
-                
-                if( strtolower($sp->parts_type) == 'y'){
-                    //dd($item,$sp);
-                    $blin->kitchen_order_no = $blin->kitchen_order_no + 1;
+                //dd($blin->getNewIdForKitchenOrder());
+                if( strtolower($sp->parts_type) == 'y'){ 
                     $this->saveToKitchen(
-                        $blin->kitchen_order_no,
+                        $blin->getNewIdForKitchenOrder(),
                         $item->orderslip_header_id,
                         $item->orderslip_detail_id,
                         $item->product_id,
@@ -281,12 +284,9 @@ class OrderSlipController extends Controller
                         $item->qty,
                         0,
                         $item->remarks
-                    );
-                    $blin->save();
+                    ); 
                 }
-            }  
-
-            //dd('STOP');
+            }   
 
             // update header status to P
             OrderSlipHeader::where('orderslip_header_id',$request->orderslip_id)
@@ -422,8 +422,9 @@ class OrderSlipController extends Controller
             // begin transaction
             DB::beginTransaction();
 
-            $jsonOjb = json_decode($request->data); 
-            $branch_id = config('settings.branch_id'); 
+            $jsonOjb    = json_decode($request->data); 
+            $branch_id  = config('settings.branch_id');  
+            $blin       = new BLIN($branch_id);
 
             // # TODO
             // // remove all items in detail
@@ -434,14 +435,15 @@ class OrderSlipController extends Controller
                     $jsonOjb->sequence,
                     $jsonOjb->main_product_id
                 );
-
+            
+            
 
             // // save new items detail 
             $orders = $jsonOjb->data; 
             $net_amount = 0;
             // save each of item in slipdetails  
             $osd = new OrderSlipDetail;  
-            $osd->orderslip_detail_id           = $osd->getNewId();
+            $osd->orderslip_detail_id           = $blin->getNewIdForOrderSlipDetails();
             $osd->orderslip_header_id           = $jsonOjb->header_id;
             $osd->branch_id                     = $branch_id;
             $osd->remarks                       = $orders->instruction; 
@@ -467,7 +469,7 @@ class OrderSlipController extends Controller
                 foreach( $orders->others as $other){ 
                     $other = (object)$other; 
                     $osd2 = new OrderSlipDetail;  
-                    $osd2->orderslip_detail_id           = $osd2->getNewId();
+                    $osd2->orderslip_detail_id           = $blin->getNewIdForOrderSlipDetails();
                     $osd2->orderslip_header_id           = $jsonOjb->header_id;
                     $osd2->branch_id                     = $branch_id;
                     $osd2->remarks                       = $orders->instruction; 
@@ -493,7 +495,7 @@ class OrderSlipController extends Controller
                         foreach( $other->others as $other2){
                             $other2 = (object)$other2;  
                             $osd3 = new OrderSlipDetail; 
-                            $osd3->orderslip_detail_id           = $osd3->getNewId();
+                            $osd3->orderslip_detail_id           = $blin->getNewIdForOrderSlipDetails();
                             $osd3->orderslip_header_id           = $jsonOjb->header_id;
                             $osd3->branch_id                     = $branch_id;
                             $osd3->remarks                       = $request->instruction; 
@@ -523,7 +525,7 @@ class OrderSlipController extends Controller
             if( isset($jsonOjb->none_modifiable_component) ){
                 foreach( $jsonOjb->none_modifiable_component as $nmc){  
                     $_osd = new OrderSlipDetail;  
-                    $_osd->orderslip_detail_id           = $_osd->getNewId();
+                    $_osd->orderslip_detail_id           = $blin->getNewIdForOrderSlipDetails();
                     $_osd->orderslip_header_id           = $jsonOjb->header_id;
                     $_osd->branch_id                     = config('settings.branch_id');
                     $_osd->remarks                       = $osd->remarks; 
