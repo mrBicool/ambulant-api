@@ -22,4 +22,14 @@ class KitchenOrder extends Model
     protected $getterMutators = [
         'remarks'   => 'trim', 
     ];
+
+    /**
+     * NOTES
+     * 
+     * origin values
+     *  1 = POS
+     *  2 = WEB
+     *  3 = 
+     */
+    
 }

@@ -272,6 +272,14 @@ class OrderSlipController extends Controller
             // begin transaction
             DB::beginTransaction();
 
+            // update kitchen if has previous record as voided
+            KitchenOrder::where('header_id',$request->orderslip_id)
+                ->where('branch_id', config('settings.branch_id'))
+                ->update([
+                    'void' => 1
+                ]);
+
+
             // saving to kitchen 
             $branch_id  = config('settings.branch_id'); 
             $blin       = new BLIN($branch_id);
@@ -296,7 +304,8 @@ class OrderSlipController extends Controller
                         $sp->kitchen_loc,
                         $item->qty,
                         0,
-                        $item->remarks
+                        $item->remarks,
+                        $item->order_type
                     ); 
                 }
             }   
@@ -589,13 +598,14 @@ class OrderSlipController extends Controller
 
     private function saveToKitchen(
         $ko_id,$header_id,$detail_id,
-        $part_id,$comp_id,$location_id,$qty,$is_paid,$remarks){
+        $part_id,$comp_id,$location_id,$qty,$is_paid,$remarks,$order_type){
 
         $helper     = new Helper;
         $ko = new KitchenOrder;
         $ko->branch_id          = config('settings.branch_id');
         $ko->ko_id              = $ko_id;
-        $ko->transact_type      = 1;
+        $ko->origin             = 2;
+        $ko->order_type         = $order_type;
         $ko->header_id          = $header_id;
         $ko->detail_id          = $detail_id;
         $ko->part_id            = $part_id;
