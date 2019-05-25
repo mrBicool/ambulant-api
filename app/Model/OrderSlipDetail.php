@@ -96,6 +96,7 @@ class OrderSlipDetail extends Model
                     ->where('product_id',$product_id) 
                     ->orderBy('encoded_date','desc')
                     ->first();
+
         if(is_null($result)){
             return 1;
         }else{
@@ -126,7 +127,7 @@ class OrderSlipDetail extends Model
     public static function getLastLineNumber($branch_id, $os_id){
         $result =  static::where('branch_id', $branch_id)
             ->where('orderslip_header_id',$os_id) 
-            ->orderby('encoded_date','desc')
+            ->orderby('line_number','desc')
             ->first(); 
 
         if($result == null){
