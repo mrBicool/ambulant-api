@@ -66,12 +66,21 @@ class OrderSlipController extends Controller
 
                 $line_number = OrderSlipDetail::getLastLineNumber($branch_id,$osh->orderslip_header_id)+1;
             } 
+
+
+            // postmix identifier
+            $sp = SitePart::findByIdAndBranch($request->product_id, $branch_id);
+            if($sp->postmix == 1){
+                $postmix = $request->product_id;
+            }else{
+                $postmix = null;
+            }
+            // end of postmix identifier
             
             
             $net_amount = 0;
             // save each of item in slipdetails  
-            $osd = new OrderSlipDetail;  
-            // $osd->orderslip_detail_id           = $osd->getNewId();
+            $osd = new OrderSlipDetail;   
             $osd->orderslip_detail_id           = $blin->getNewIdForOrderSlipDetails();
             $osd->orderslip_header_id           = $osh->orderslip_header_id;
             $osd->branch_id                     = config('settings.branch_id');
@@ -86,7 +95,7 @@ class OrderSlipController extends Controller
             $osd->line_number                   = $line_number;
             $osd->order_no                      = $osd->line_number;
             $osd->status                        = 'B';
-            $osd->postmix_id                    = $request->main_product_id;
+            $osd->postmix_id                    = $postmix;
             $osd->main_product_id               = $request->main_product_id;
             $osd->main_product_comp_id          = $request->main_product_comp_id;
             $osd->main_product_comp_qty         = $request->main_product_comp_qty;
@@ -99,33 +108,37 @@ class OrderSlipController extends Controller
             $line_number++;
             
             if( isset($request->others) ){
-                foreach( $request->others as $other){ 
+                foreach( $request->others as $other){  
                     $other = (object)$other; 
-                    $osd2 = new OrderSlipDetail;  
-                    $osd2->orderslip_detail_id           = $blin->getNewIdForOrderSlipDetails();
-                    $osd2->orderslip_header_id           = $osh->orderslip_header_id;
-                    $osd2->branch_id                     = config('settings.branch_id');
-                    $osd2->remarks                       = $request->instruction; 
-                    $osd2->order_type                    = $osd2->getOrderTypeValue($request->is_take_out);
-                    $osd2->product_id                    = $other->product_id;
-                    $osd2->qty                           = $other->qty;
-                    $osd2->srp                           = $other->price;
-                    $osd2->amount                        = $other->qty * $other->price;
-                    $osd2->net_amount                    = $other->qty * $other->price;
-                    $osd2->is_modify                     = 1;
-                    $osd2->line_number                   = $line_number;
-                    $osd2->order_no                      = $osd->line_number;
-                    $osd2->status                        = 'B';
-                    $osd2->postmix_id                    = $other->main_product_id;
-                    $osd2->main_product_id               = $other->main_product_id;
-                    $osd2->main_product_comp_id          = $other->main_product_component_id;
-                    $osd2->main_product_comp_qty         = $other->main_product_component_qty;
-                    $osd2->part_number                   = $other->part_number;
-                    $osd2->encoded_date                  = now();
-                    $osd2->sequence                      = $osd->sequence;
-                    $osd2->save(); 
-                    $net_amount += $osd2->net_amount;
-                    $line_number++;
+
+                    if($other->qty != 0){
+                        $osd2 = new OrderSlipDetail;  
+                        $osd2->orderslip_detail_id           = $blin->getNewIdForOrderSlipDetails();
+                        $osd2->orderslip_header_id           = $osh->orderslip_header_id;
+                        $osd2->branch_id                     = config('settings.branch_id');
+                        $osd2->remarks                       = $request->instruction; 
+                        $osd2->order_type                    = $osd2->getOrderTypeValue($request->is_take_out);
+                        $osd2->product_id                    = $other->product_id;
+                        $osd2->qty                           = $other->qty;
+                        $osd2->srp                           = $other->price;
+                        $osd2->amount                        = $other->qty * $other->price;
+                        $osd2->net_amount                    = $other->qty * $other->price;
+                        $osd2->is_modify                     = 1;
+                        $osd2->line_number                   = $line_number;
+                        $osd2->order_no                      = $osd->line_number;
+                        $osd2->status                        = 'B';
+                        $osd2->postmix_id                    = $postmix;
+                        $osd2->main_product_id               = $other->main_product_id;
+                        $osd2->main_product_comp_id          = $other->main_product_component_id;
+                        $osd2->main_product_comp_qty         = $other->main_product_component_qty;
+                        $osd2->part_number                   = $other->part_number;
+                        $osd2->encoded_date                  = now();
+                        $osd2->sequence                      = $osd->sequence;
+                        $osd2->save(); 
+                        $net_amount += $osd2->net_amount;
+                        $line_number++;
+                    }
+
                     if( isset($other->others) ){
                         foreach( $other->others as $other2){
                             $other2 = (object)$other2;  
@@ -144,7 +157,7 @@ class OrderSlipController extends Controller
                             $osd3->line_number                   = $line_number;
                             $osd3->order_no                      = $osd->line_number;
                             $osd3->status                        = 'B';
-                            $osd3->postmix_id                    = $other2->main_product_id;
+                            $osd3->postmix_id                    = $postmix;
                             $osd3->main_product_id               = $other2->main_product_id;
                             $osd3->main_product_comp_id          = $other2->main_product_component_id;
                             $osd3->main_product_comp_qty         = $other->main_product_component_qty;
@@ -178,7 +191,7 @@ class OrderSlipController extends Controller
                     $_osd->line_number                   = $line_number;
                     $_osd->order_no                      = $osd->line_number;
                     $_osd->status                        = 'B';
-                    $_osd->postmix_id                    = $osd->product_id;
+                    $_osd->postmix_id                    = $postmix;
                     $_osd->main_product_id               = $osd->product_id;
                     $_osd->main_product_comp_id          = $_osd->product_id;
                     $_osd->main_product_comp_qty         = $_osd->qty;
@@ -458,7 +471,15 @@ class OrderSlipController extends Controller
                     $jsonOjb->main_product_id
                 );
             
-            
+            $line_number = 1;
+            // postmix identifier
+            $sp = SitePart::findByIdAndBranch($jsonOjb->data->product_id, $branch_id);
+            if($sp->postmix == 1){
+                $postmix = $request->product_id;
+            }else{
+                $postmix = null;
+            }
+            // end of postmix identifier
 
             // // save new items detail 
             $orders = $jsonOjb->data; 
@@ -474,9 +495,12 @@ class OrderSlipController extends Controller
             $osd->qty                           = $orders->qty;
             $osd->srp                           = $orders->price;
             $osd->amount                        = $orders->qty * $orders->price;
-            $osd->net_amount                    = $orders->qty * $orders->price; 
+            $osd->net_amount                    = $orders->qty * $orders->price;
+            $osd->line_number                   = $line_number;
+            $osd->order_no                      = $osd->line_number; 
+            $osd->postmix_id                    = $postmix;
             $osd->status                        = 'B';
-            $osd->postmix_id                    = $orders->main_product_id;
+            //$osd->postmix_id                    = $orders->main_product_id;
             $osd->main_product_id               = $orders->main_product_id;
             $osd->main_product_comp_id          = $orders->main_product_component_id;
             $osd->main_product_comp_qty         = $orders->main_product_component_qty;
@@ -486,32 +510,41 @@ class OrderSlipController extends Controller
             $osd->save();
 
             $net_amount += $osd->net_amount;
+            $line_number++;
 
             if( isset($orders->others) ){
                 foreach( $orders->others as $other){ 
+
                     $other = (object)$other; 
-                    $osd2 = new OrderSlipDetail;  
-                    $osd2->orderslip_detail_id           = $blin->getNewIdForOrderSlipDetails();
-                    $osd2->orderslip_header_id           = $jsonOjb->header_id;
-                    $osd2->branch_id                     = $branch_id;
-                    $osd2->remarks                       = $orders->instruction; 
-                    $osd2->order_type                    = $osd2->getOrderTypeValue($orders->is_take_out);
-                    $osd2->product_id                    = $other->product_id;
-                    $osd2->qty                           = $other->qty;
-                    $osd2->srp                           = $other->price;
-                    $osd2->amount                        = $other->qty * $other->price;
-                    $osd2->net_amount                    = $other->qty * $other->price;
-                    $osd2->is_modify                     = 1;
-                    $osd2->status                        = 'B';
-                    $osd2->postmix_id                    = $other->main_product_id;
-                    $osd2->main_product_id               = $other->main_product_id;
-                    $osd2->main_product_comp_id          = $other->main_product_component_id;
-                    $osd2->main_product_comp_qty         = $other->main_product_component_qty;
-                    $osd2->part_number                   = $other->part_number;
-                    $osd2->encoded_date                  = now();
-                    $osd2->sequence                      = $osd->sequence;
-                    $osd2->save(); 
-                    $net_amount += $osd2->net_amount;
+
+                    if($other->qty != 0){
+                        $osd2 = new OrderSlipDetail;  
+                        $osd2->orderslip_detail_id           = $blin->getNewIdForOrderSlipDetails();
+                        $osd2->orderslip_header_id           = $jsonOjb->header_id;
+                        $osd2->branch_id                     = $branch_id;
+                        $osd2->remarks                       = $orders->instruction; 
+                        $osd2->order_type                    = $osd2->getOrderTypeValue($orders->is_take_out);
+                        $osd2->product_id                    = $other->product_id;
+                        $osd2->qty                           = $other->qty;
+                        $osd2->srp                           = $other->price;
+                        $osd2->amount                        = $other->qty * $other->price;
+                        $osd2->net_amount                    = $other->qty * $other->price;
+                        $osd2->is_modify                     = 1;
+                        $osd2->line_number                   = $line_number;
+                        $osd2->order_no                      = $osd->line_number; 
+                        $osd2->postmix_id                    = $postmix;
+                        $osd2->status                        = 'B';
+                        //$osd2->postmix_id                    = $other->main_product_id;
+                        $osd2->main_product_id               = $other->main_product_id;
+                        $osd2->main_product_comp_id          = $other->main_product_component_id;
+                        $osd2->main_product_comp_qty         = $other->main_product_component_qty;
+                        $osd2->part_number                   = $other->part_number;
+                        $osd2->encoded_date                  = now();
+                        $osd2->sequence                      = $osd->sequence;
+                        $osd2->save(); 
+                        $net_amount += $osd2->net_amount;
+                        $line_number++;
+                    }
 
                     if( isset($other->others) ){
                         foreach( $other->others as $other2){
@@ -528,8 +561,11 @@ class OrderSlipController extends Controller
                             $osd3->amount                        = $other2->qty * $other2->price;
                             $osd3->net_amount                    = $other2->qty * $other2->price;
                             $osd3->is_modify                     = 1;
+                            $osd3->line_number                   = $line_number;
+                            $osd3->order_no                      = $osd->line_number; 
+                            $osd3->postmix_id                    = $postmix;
                             $osd3->status                        = 'B';
-                            $osd3->postmix_id                    = $other2->main_product_id;
+                            //$osd3->postmix_id                    = $other2->main_product_id;
                             $osd3->main_product_id               = $other2->main_product_id;
                             $osd3->main_product_comp_id          = $other2->main_product_component_id;
                             $osd3->main_product_comp_qty         = $other->main_product_component_qty;
@@ -538,6 +574,7 @@ class OrderSlipController extends Controller
                             $osd3->sequence                      = $osd->sequence;
                             $osd3->save(); 
                             $net_amount += $osd3->net_amount;
+                            $line_number++;
                         }
                     }
                 }
@@ -558,6 +595,9 @@ class OrderSlipController extends Controller
                     $_osd->amount                        = $_osd->qty * $_osd->srp;
                     $_osd->net_amount                    = $_osd->qty * $_osd->srp;
                     $_osd->is_modify                     = 0;
+                    $_osd->line_number                   = $line_number;
+                    $_osd->order_no                      = $osd->line_number; 
+                    $_osd->postmix_id                    = $postmix;
                     $_osd->status                        = 'B';
                     $_osd->postmix_id                    = $osd->product_id;
                     $_osd->main_product_id               = $osd->product_id;
@@ -567,6 +607,7 @@ class OrderSlipController extends Controller
                     $_osd->encoded_date                  = now();
                     $_osd->sequence                      = $osd->sequence;
                     $_osd->save(); 
+                    $line_number++;
                 }
             }
 
