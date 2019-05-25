@@ -32,4 +32,12 @@ class KitchenOrder extends Model
      *  3 = 
      */
     
+     /**
+      * logic
+      */
+      public static function findByBranchAndCode($branch_id, $code){
+          return static::where('branch_id', $branch_id)
+            ->where('barcode', $code)
+            ->first();
+      }
 }

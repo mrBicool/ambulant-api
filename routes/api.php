@@ -54,12 +54,15 @@ Route::namespace('Api\V1')->group(function () {
             Route::patch('/orderslip/header',           'OrderSlipHeaderController@update');
 
             Route::delete('/orderslip/details',         'OrderSlipDetailController@destroy');
-            Route::get('/orderslip/detail',            'OrderSlipDetailController@getByHeader');
+            Route::get('/orderslip/detail',             'OrderSlipDetailController@getByHeader');
 
             // customer
             Route::get('/customer/search',              'CustomerController@search');
 
             Route::post('/logout',                      'LoginController@logout');
+
+            Route::get('/claiming/check-code',          'ClaimingController@checkCode');
+            Route::post('/claiming',                    'ClaimingController@claim');
         });
     });
 

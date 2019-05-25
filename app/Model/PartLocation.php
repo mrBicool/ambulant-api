@@ -65,6 +65,11 @@ class PartLocation extends Model
             ->where('display',1);
     }
 
+    public function postmixComponents(){ 
+        return $this->hasMany('App\Model\Postmix','product_id','product_id')
+             ->where('display',1);
+    }
+
      /**
       * LOGIC
       */

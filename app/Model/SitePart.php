@@ -56,8 +56,8 @@ class SitePart extends Model
     ];
 
     //logic
-    public static function findByIdAndBranch($product_id){
-        return static::where('ARNOC',       config('custom.branch_id'))
+    public static function findByIdAndBranch($product_id, $branch_id){
+        return static::where('ARNOC',       $branch_id)
                     ->where('PRODUCT_ID',   $product_id)
                     ->first();
     }
