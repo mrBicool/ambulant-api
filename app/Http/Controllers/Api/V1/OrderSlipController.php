@@ -280,47 +280,59 @@ class OrderSlipController extends Controller
      * @return 
      */
     public function markAsDone(Request $request){
-        try{
-
+        try{ 
+            
             // begin transaction
             DB::beginTransaction();
-
+ 
             // update kitchen if has previous record as voided
-            KitchenOrder::where('header_id',$request->orderslip_id)
-                ->where('branch_id', config('settings.branch_id'))
-                ->update([
-                    'void' => 1
-                ]);
+            // KitchenOrder::where('header_id',$request->orderslip_id)
+            //     ->where('branch_id', config('settings.branch_id'))
+            //     ->update([
+            //         'void' => 1
+            //     ]);
 
 
             // saving to kitchen 
             $branch_id  = config('settings.branch_id'); 
             $blin       = new BLIN($branch_id);
+           
             $results    = OrderSlipDetail::where('orderslip_header_id', $request->orderslip_id)
-                            ->where('branch_id', config('settings.branch_id'))
-                            ->get(); 
+                        ->where('branch_id', config('settings.branch_id'))
+                        ->get(); 
 
             foreach ($results as $key => $item) {
-                # code...
-               
+                # code... 
                 $sp = SitePart::where('sitepart_id', $item->product_id)
                     ->where('branch_id', config('settings.branch_id'))
                     ->first();  
                 //dd($blin->getNewIdForKitchenOrder());
                 if( strtolower($sp->parts_type) == 'y'){ 
-                    $this->saveToKitchen(
-                        $blin->getNewIdForKitchenOrder(),
-                        $item->orderslip_header_id,
-                        $item->orderslip_detail_id,
-                        $item->product_id,
-                        $item->main_product_id,
-                        $sp->kitchen_loc,
-                        $item->qty,
-                        0,
-                        $item->remarks,
-                        $item->order_type
-                    ); 
+
+                    $is_already_in_the_kitchen = KitchenOrder::where('branch_id',$branch_id)
+                        ->where('header_id', $request->orderslip_id )
+                        ->where('detail_id', $item->orderslip_detail_id)
+                        ->where('comp_id', $item->main_product_id)
+                        ->where('part_id', $item->product_id)
+                        ->first();  
+                    
+                    if( !$is_already_in_the_kitchen ){
+                        $this->saveToKitchen(
+                            $blin->getNewIdForKitchenOrder(),
+                            $item->orderslip_header_id,
+                            $item->orderslip_detail_id,
+                            $item->product_id,
+                            $item->main_product_id,
+                            $sp->kitchen_loc,
+                            $item->qty,
+                            0,
+                            $item->remarks,
+                            $item->order_type
+                        ); 
+                    } 
+
                 }
+
             }   
 
             // update header status to P
@@ -459,17 +471,33 @@ class OrderSlipController extends Controller
 
             $jsonOjb    = json_decode($request->data); 
             $branch_id  = config('settings.branch_id');  
-            $blin       = new BLIN($branch_id);
+            $blin       = new BLIN($branch_id); 
 
             // # TODO
             // // remove all items in detail
             $old_osd = new OrderSlipDetail;
             $old_osd->removeByHeaderIdAndBranchId(
-                    $jsonOjb->header_id, 
+                    $jsonOjb->header_id,
                     $branch_id,
                     $jsonOjb->sequence,
                     $jsonOjb->main_product_id
                 );
+            
+            // update the kitchen record and set it as void 
+            $is_already_in_the_kitchen = KitchenOrder::where('branch_id',$branch_id)
+                        ->where('header_id', $jsonOjb->header_id)
+                        ->where('comp_id', $jsonOjb->main_product_id)
+                        ->first();
+
+            if($is_already_in_the_kitchen){
+                // update this item in the kitchen to void
+                KitchenOrder::where('branch_id',$branch_id)
+                    ->where('header_id', $jsonOjb->header_id)
+                    ->where('comp_id', $jsonOjb->main_product_id)
+                    ->update([
+                        'void' => 1
+                    ]);
+            }
             
             $line_number = 1;
             // postmix identifier
@@ -512,6 +540,27 @@ class OrderSlipController extends Controller
             $net_amount += $osd->net_amount;
             $line_number++;
 
+            if($is_already_in_the_kitchen){ // saving to kitchen
+                $sp = SitePart::where('sitepart_id', $osd->product_id)
+                    ->where('branch_id', $branch_id)
+                    ->first();  
+                //dd($blin->getNewIdForKitchenOrder());
+                if( strtolower($sp->parts_type) == 'y'){ 
+                    $this->saveToKitchen(
+                        $blin->getNewIdForKitchenOrder(),
+                        $osd->orderslip_header_id,
+                        $osd->orderslip_detail_id,
+                        $osd->product_id,
+                        $osd->main_product_id,
+                        $sp->kitchen_loc,
+                        $osd->qty,
+                        0,
+                        $osd->remarks,
+                        $osd->order_type
+                    ); 
+                }
+            }
+
             if( isset($orders->others) ){
                 foreach( $orders->others as $other){ 
 
@@ -544,6 +593,27 @@ class OrderSlipController extends Controller
                         $osd2->save(); 
                         $net_amount += $osd2->net_amount;
                         $line_number++;
+
+                        if($is_already_in_the_kitchen){ // saving to kitchen
+                            $sp = SitePart::where('sitepart_id', $osd2->product_id)
+                                ->where('branch_id', $branch_id)
+                                ->first();  
+                            //dd($blin->getNewIdForKitchenOrder());
+                            if( strtolower($sp->parts_type) == 'y'){ 
+                                $this->saveToKitchen(
+                                    $blin->getNewIdForKitchenOrder(),
+                                    $osd2->orderslip_header_id,
+                                    $osd2->orderslip_detail_id,
+                                    $osd2->product_id,
+                                    $osd2->main_product_id,
+                                    $sp->kitchen_loc,
+                                    $osd2->qty,
+                                    0,
+                                    $osd2->remarks,
+                                    $osd2->order_type
+                                ); 
+                            }
+                        }
                     }
 
                     if( isset($other->others) ){
@@ -575,6 +645,27 @@ class OrderSlipController extends Controller
                             $osd3->save(); 
                             $net_amount += $osd3->net_amount;
                             $line_number++;
+
+                            if($is_already_in_the_kitchen){ // saving to kitchen
+                                $sp = SitePart::where('sitepart_id', $osd3->product_id)
+                                    ->where('branch_id', $branch_id)
+                                    ->first();  
+                                //dd($blin->getNewIdForKitchenOrder());
+                                if( strtolower($sp->parts_type) == 'y'){ 
+                                    $this->saveToKitchen(
+                                        $blin->getNewIdForKitchenOrder(),
+                                        $osd3->orderslip_header_id,
+                                        $osd3->orderslip_detail_id,
+                                        $osd3->product_id,
+                                        $osd3->main_product_id,
+                                        $sp->kitchen_loc,
+                                        $osd3->qty,
+                                        0,
+                                        $osd3->remarks,
+                                        $osd3->order_type
+                                    ); 
+                                }
+                            }
                         }
                     }
                 }
@@ -608,6 +699,27 @@ class OrderSlipController extends Controller
                     $_osd->sequence                      = $osd->sequence;
                     $_osd->save(); 
                     $line_number++;
+
+                    if($is_already_in_the_kitchen){ // saving to kitchen
+                        $sp = SitePart::where('sitepart_id', $_osd->product_id)
+                            ->where('branch_id', $branch_id)
+                            ->first();  
+                        //dd($blin->getNewIdForKitchenOrder());
+                        if( strtolower($sp->parts_type) == 'y'){ 
+                            $this->saveToKitchen(
+                                $blin->getNewIdForKitchenOrder(),
+                                $_osd->orderslip_header_id,
+                                $_osd->orderslip_detail_id,
+                                $_osd->product_id,
+                                $_osd->main_product_id,
+                                $sp->kitchen_loc,
+                                $_osd->qty,
+                                0,
+                                $_osd->remarks,
+                                $_osd->order_type
+                            ); 
+                        }
+                    }
                 }
             }
 

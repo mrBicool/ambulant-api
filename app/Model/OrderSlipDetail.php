@@ -93,7 +93,7 @@ class OrderSlipDetail extends Model
     public function getNewSequence($branch_id, $header_id, $product_id){
         $result = static::where('branch_id', $branch_id)
                     ->where('orderslip_header_id',$header_id)
-                    ->where('product_id',$product_id) 
+                    ->where('product_id',$product_id)
                     ->orderBy('encoded_date','desc')
                     ->first();
 
