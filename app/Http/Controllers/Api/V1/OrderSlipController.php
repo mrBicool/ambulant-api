@@ -751,7 +751,9 @@ class OrderSlipController extends Controller
 
     private function saveToKitchen(
         $ko_id,$header_id,$detail_id,
-        $part_id,$comp_id,$location_id,$qty,$is_paid,$remarks,$order_type){
+        $part_id,$comp_id,$location_id,
+        $qty,$is_paid,$remarks,$order_type
+        ){
 
         $helper     = new Helper;
         $ko = new KitchenOrder;
@@ -773,6 +775,7 @@ class OrderSlipController extends Controller
         $ko->created_time       = $helper->getClarionTime($now);
         $ko->is_paid            = $is_paid;
         $ko->remarks            = $remarks;
+        $ko->postmix_id         = $comp_id;
         $ko->save();
         return $ko;
     }

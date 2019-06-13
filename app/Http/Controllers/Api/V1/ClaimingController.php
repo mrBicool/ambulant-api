@@ -45,7 +45,7 @@ class ClaimingController extends Controller
                 'message'   => 'Not available in this outlet!'
             ]);
         }
-
+        
         // check if food
         if($result->is_food != 1){
             return response()->json([
@@ -64,6 +64,7 @@ class ClaimingController extends Controller
             ]);
         }
         
+
 
         // construct a object with component
         $product = [
@@ -91,13 +92,14 @@ class ClaimingController extends Controller
             if($request->tag == 'food'){ 
                 // code: "51-29"
                 // product_id: "29"
-                // qty: "1" 
-                // outlet_id: "3" 
+                // qty: "1"
+                // outlet_id: "3"
 
                 // check if this product is in this outlet
                 $pl = PartLocation::byProductAndOutlet(
                     $request->product_id,
-                    $request->outlet_id);
+                    $request->outlet_id
+                );
                 
                 $components = $pl->postmixComponents()->get(); 
 
@@ -111,8 +113,8 @@ class ClaimingController extends Controller
 
                 // check if this item is has been claimed.
                 $sod = SalesOrderDetail::where('barcode',$request->code)
-                    ->where('branch_id', $branch_id)
-                    ->first();
+                        ->where('branch_id', $branch_id)
+                        ->first();
                 
                 if($sod->qty_remaining <= 0 ){
                     return response()->json([
@@ -133,7 +135,7 @@ class ClaimingController extends Controller
                 }
 
                 $sp = SitePart::findByIdAndBranch($request->product_id, $branch_id); 
-                
+
                 // if this item belongs to kitchen save it
                 if( strtolower($sp->parts_type) == 'y'){ 
                     $this->saveToKitchen(
@@ -169,10 +171,11 @@ class ClaimingController extends Controller
                         ); 
                     }
                 }  
+
             }
 
             // commit all changes
-            DB::commit(); 
+            DB::commit();
             return response()->json([
                 'success'   => true,
                 'status'    => 200,

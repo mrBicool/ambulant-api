@@ -17,6 +17,7 @@ class KitchenOrder extends Model
      */
     protected $maps = [
         'remarks'        => 'REMARKS', 
+        'postmix_id'    => 'POSTMIXID'
     ];
 
     protected $getterMutators = [
