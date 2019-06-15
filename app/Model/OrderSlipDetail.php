@@ -41,7 +41,9 @@ class OrderSlipDetail extends Model
         'encoded_date'          => 'ENCODEDDATE',
         'main_product_id'       => 'MAIN_PRODUCT_ID',
         'main_product_comp_id'  => 'MAIN_PRODUCT_COMPONENT_ID',
-        'main_product_comp_qty' => 'MAIN_PRODUCT_COMPONENT_QTY'
+        'main_product_comp_qty' => 'MAIN_PRODUCT_COMPONENT_QTY',
+        // 'guest_no'              => 'guest_no',
+        // 'guest_type'            => 'guest_type'
     ];
 
     protected $getterMutators = [

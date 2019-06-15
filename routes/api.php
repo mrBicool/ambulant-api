@@ -50,7 +50,7 @@ Route::namespace('Api\V1')->group(function () {
             Route::get('/orderslip/pending',            'OrderSlipController@pendingByOutlet'); 
             Route::get('/orderslip/completed',          'OrderSlipController@completedByOutlet');
             Route::patch('/orderslip/change-os',        'OrderSlipController@changeOs');
-
+ 
             Route::patch('/orderslip/header',           'OrderSlipHeaderController@update');
 
             Route::delete('/orderslip/details',         'OrderSlipDetailController@destroy');

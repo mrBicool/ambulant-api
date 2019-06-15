@@ -102,6 +102,8 @@ class OrderSlipController extends Controller
             $osd->part_number                   = $request->part_number; 
             $osd->encoded_date                  = now();
             $osd->sequence                      = $osd->getNewSequence( config('settings.branch_id'), $osh->orderslip_header_id, $request->product_id );
+            $osd->guest_no                      = $request->guest_no;
+            $osd->guest_type                    = $request->guest_type;
             $osd->save();
 
             $net_amount += $osd->net_amount;
@@ -535,6 +537,8 @@ class OrderSlipController extends Controller
             $osd->part_number                   = $orders->part_number; 
             $osd->encoded_date                  = now();
             $osd->sequence                      = $osd->getNewSequence( $branch_id, $jsonOjb->header_id, $orders->product_id );
+            $osd->guest_no                      = $orders->guest_no;
+            $osd->guest_type                    = $orders->guest_type; 
             $osd->save();
 
             $net_amount += $osd->net_amount;
@@ -778,7 +782,6 @@ class OrderSlipController extends Controller
         $ko->postmix_id         = $comp_id;
         $ko->save();
         return $ko;
-    }
-
+    } 
 
 }
