@@ -18,9 +18,10 @@ class Part extends Model
 
     //model mapping 
     protected $maps = [
-        'part_id'   => 'PRODUCT_ID',
-        'product_number' => 'PRODUCTNO',
-        'description' => 'DESCRIPTION'
+        'part_id'               => 'PRODUCT_ID',
+        'product_number'        => 'PRODUCTNO',
+        'description'           => 'DESCRIPTION',
+        'img_url'               => 'IMAGE'
     ];
 
     protected $getterMutators = [

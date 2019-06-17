@@ -42,7 +42,7 @@ Route::namespace('Api\V1')->group(function () {
             Route::post('/product/components',                          'PartLocationController@productComponents');
             Route::post('/product/component/categories',                'PartLocationController@productByCategory');
 
-            // orderslip
+            // orderslip 
             Route::post('/orderslip',                   'OrderSlipController@store');
             Route::patch('/orderslip',                  'OrderSlipController@update');
             Route::get('/orderslip/active',             'OrderSlipController@getActiveOrder');

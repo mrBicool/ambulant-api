@@ -18,6 +18,7 @@ use App\Http\Resources\PostmixCollection;
 use App\Model\SitePart;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Storage;
 
 class PartLocationController extends Controller
 { 
@@ -96,10 +97,18 @@ class PartLocationController extends Controller
 
             $result->getCollection() 
                 ->transform(function ($value) { 
-                //$url = Storage::url($value->IMAGE);
+                
+                $sitepart = SitePart::where('branch_id', config('settings.branch_id'))
+                            ->where('sitepart_id',$value->product_id )
+                            ->first();
+
                 $parts_type = SitePart::getPartsTypeById($value->product_id);
                 $kitchen_loc = SitePart::getKitchenLocationById($value->product_id);
                 
+                /**
+                 * working on this shit
+                 */
+                $url = Storage::url($sitepart->part->img_url);
                 return [
                     'product_id'    => $value->product_id,
                     'outlet_id'     => $value->outlet_id, 
@@ -111,7 +120,7 @@ class PartLocationController extends Controller
                         'group_code'    => $value->group->group_id,
                         'description'   => $value->group->description
                     ],  
-                    'image'         => '', 
+                    'img_path'      => $url, 
                     'is_food'       => $value->is_food,
                     'is_postmix'    => $value->postmix,
                     'parts_type'    => $parts_type,
@@ -122,7 +131,8 @@ class PartLocationController extends Controller
             return response()->json([
                 'success'   => true,
                 'status'    => 200,
-                'result'    => $result
+                'result'    => $result,
+                'base_url'  => url('/')
             ]);
 
         }catch(\Exception $e){
@@ -147,7 +157,8 @@ class PartLocationController extends Controller
         return response()->json([
             'success'   => true,
             'status'    => 200,
-            'result'    => $result
+            'result'    => $result,
+            'base_url'  => url('/')
         ]);
     }
 

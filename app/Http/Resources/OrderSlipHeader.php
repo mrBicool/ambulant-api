@@ -15,7 +15,7 @@ class OrderSlipHeader extends JsonResource
      */
     public function toArray($request)
     {
-        //return parent::toArray($request);
+        //return parent::toArray($request); 
         $created_at = new Carbon($this->created_at);
         return [
             'orderslip_header_id' => $this->orderslip_header_id,
@@ -35,7 +35,8 @@ class OrderSlipHeader extends JsonResource
             'prepared_by' => $this->prepared_by,
             'cce_name' => $this->cce_name,
             'total_hc' => $this->total_hc,
-            'outlet_id' => $this->outlet_id
+            'outlet_id' => $this->outlet_id,
+            'table_id' => $this->table_id
         ];
     }
 }

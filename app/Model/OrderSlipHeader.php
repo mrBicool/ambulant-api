@@ -38,7 +38,8 @@ class OrderSlipHeader extends Model
         'prepared_by'           => 'PREPAREDBY',
         'cce_name'              => 'CCENAME',
         'total_hc'              => 'TOTALHEADCOUNT',
-        'outlet_id'             => 'OUTLET_ID'
+        'outlet_id'             => 'OUTLET_ID',
+        'table_id'              => 'TABLE_ID'
     ];
     
     protected $getterMutators = [

@@ -15,6 +15,23 @@ class OrderSlipHeaderController extends Controller
             // begin transaction
             DB::beginTransaction();
 
+            // check if table no. is currently used
+            $checkTable = OrderSlipHeader::where('branch_id', $request->branch_id)
+                            ->where('orderslip_header_id', '!=',  $request->orderslip_header_id)
+                            ->where('table_id', $request->table_id)
+                            ->whereIn('status',['B','P']) 
+                            ->first();
+
+            if($checkTable){
+                DB::rollBack(); 
+                return response()->json([
+                    'success'   => false,
+                    'status'    => 200,
+                    'message'   => 'Table No. is currently used.'
+                ]); 
+            }
+            //dd($checkTable);
+
             //logic
             $data   = $request->except(['branch_id','orderslip_header_id','_method']); 
             $result = OrderSlipHeader::where('branch_id', $request->branch_id)

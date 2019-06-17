@@ -89,13 +89,17 @@ class SitePart extends Model
         return $parts_type;
     }
 
-    //relationship 
+    //relationshit
     public function group(){
         return $this->belongsTo('App\Group', 'GROUP');
     }
 
     public function components(){
         return $this->hasMany('App\Postmix', 'PRODUCT_ID', 'PRODUCT_ID');
+    }
+
+    public function part(){
+        return $this->belongsTo('App\Model\Part','sitepart_id');
     }
 
      

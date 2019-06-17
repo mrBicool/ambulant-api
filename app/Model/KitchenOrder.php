@@ -16,8 +16,10 @@ class KitchenOrder extends Model
      * Model Mapping
      */
     protected $maps = [
-        'remarks'        => 'REMARKS', 
-        'postmix_id'    => 'POSTMIXID'
+        'remarks'       => 'REMARKS', 
+        'postmix_id'    => 'POSTMIXID',
+        'origin'        => 'ORIGIN',
+        'table_id'      => 'TABLE_ID'
     ];
 
     protected $getterMutators = [

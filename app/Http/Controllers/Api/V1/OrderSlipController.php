@@ -136,6 +136,8 @@ class OrderSlipController extends Controller
                         $osd2->part_number                   = $other->part_number;
                         $osd2->encoded_date                  = now();
                         $osd2->sequence                      = $osd->sequence;
+                        $osd2->guest_no                      = $request->guest_no;
+                        $osd2->guest_type                    = $request->guest_type;
                         $osd2->save(); 
                         $net_amount += $osd2->net_amount;
                         $line_number++;
@@ -166,6 +168,8 @@ class OrderSlipController extends Controller
                             $osd3->part_number                   = $other2->part_number;
                             $osd3->encoded_date                  = now();
                             $osd3->sequence                      = $osd->sequence;
+                            $osd3->guest_no                      = $request->guest_no;
+                            $osd3->guest_type                    = $request->guest_type;
                             $osd3->save(); 
                             $net_amount += $osd3->net_amount;
                             $line_number++;
@@ -200,6 +204,8 @@ class OrderSlipController extends Controller
                     $_osd->part_number                   = $nmc->product_partno;
                     $_osd->encoded_date                  = now();
                     $_osd->sequence                      = $osd->sequence;
+                    $_osd->guest_no                      = $request->guest_no;
+                    $_osd->guest_type                    = $request->guest_type;
                     $_osd->save(); 
                     $line_number++;
                 }
@@ -254,7 +260,7 @@ class OrderSlipController extends Controller
                 $details    = $details->groupBy(['main_product_id','sequence']); //
             } 
 
-            // commit all changes
+            // commit all changes 
             DB::commit(); 
 
             return response()->json([
@@ -329,13 +335,23 @@ class OrderSlipController extends Controller
                             $item->qty,
                             0,
                             $item->remarks,
-                            $item->order_type
+                            $item->order_type,
+                            $request->table_id
                         ); 
                     } 
 
                 }
 
             }   
+
+            // update kitchen_order table_id
+             KitchenOrder::where('header_id',$request->orderslip_id)
+                ->where('branch_id', config('settings.branch_id'))
+                ->where('origin',2)
+                ->update([
+                    'table_id' => $request->table_id
+                ]);
+
 
             // update header status to P
             OrderSlipHeader::where('orderslip_header_id',$request->orderslip_id)
@@ -475,6 +491,10 @@ class OrderSlipController extends Controller
             $branch_id  = config('settings.branch_id');  
             $blin       = new BLIN($branch_id); 
 
+            $osh        = OrderSlipHeader::where('branch_id', $branch_id)
+                                ->where('orderslip_header_id', $jsonOjb->header_id)
+                                ->first();
+
             // # TODO
             // // remove all items in detail
             $old_osd = new OrderSlipDetail;
@@ -560,7 +580,8 @@ class OrderSlipController extends Controller
                         $osd->qty,
                         0,
                         $osd->remarks,
-                        $osd->order_type
+                        $osd->order_type,
+                        $osh->table_id
                     ); 
                 }
             }
@@ -594,6 +615,8 @@ class OrderSlipController extends Controller
                         $osd2->part_number                   = $other->part_number;
                         $osd2->encoded_date                  = now();
                         $osd2->sequence                      = $osd->sequence;
+                        $osd2->guest_no                      = $orders->guest_no;
+                        $osd2->guest_type                    = $orders->guest_type; 
                         $osd2->save(); 
                         $net_amount += $osd2->net_amount;
                         $line_number++;
@@ -614,7 +637,8 @@ class OrderSlipController extends Controller
                                     $osd2->qty,
                                     0,
                                     $osd2->remarks,
-                                    $osd2->order_type
+                                    $osd2->order_type,
+                                    $osh->table_id
                                 ); 
                             }
                         }
@@ -646,6 +670,8 @@ class OrderSlipController extends Controller
                             $osd3->part_number                   = $other2->part_number;
                             $osd3->encoded_date                  = now();
                             $osd3->sequence                      = $osd->sequence;
+                            $osd3->guest_no                      = $orders->guest_no;
+                            $osd3->guest_type                    = $orders->guest_type; 
                             $osd3->save(); 
                             $net_amount += $osd3->net_amount;
                             $line_number++;
@@ -666,7 +692,8 @@ class OrderSlipController extends Controller
                                         $osd3->qty,
                                         0,
                                         $osd3->remarks,
-                                        $osd3->order_type
+                                        $osd3->order_type,
+                                        $osh->table_id
                                     ); 
                                 }
                             }
@@ -682,7 +709,7 @@ class OrderSlipController extends Controller
                     $_osd->orderslip_detail_id           = $blin->getNewIdForOrderSlipDetails();
                     $_osd->orderslip_header_id           = $jsonOjb->header_id;
                     $_osd->branch_id                     = config('settings.branch_id');
-                    $_osd->remarks                       = $osd->remarks; 
+                    $_osd->remarks                       = $osd->remarks;
                     $_osd->order_type                    = $_osd->getOrderTypeValue($orders->is_take_out);
                     $_osd->product_id                    = $nmc->product_id;
                     $_osd->qty                           = ($nmc->quantity * $osd->qty);
@@ -701,6 +728,8 @@ class OrderSlipController extends Controller
                     $_osd->part_number                   = $nmc->product_partno;
                     $_osd->encoded_date                  = now();
                     $_osd->sequence                      = $osd->sequence;
+                    $_osd->guest_no                      = $orders->guest_no;
+                    $_osd->guest_type                    = $orders->guest_type;
                     $_osd->save(); 
                     $line_number++;
 
@@ -720,7 +749,8 @@ class OrderSlipController extends Controller
                                 $_osd->qty,
                                 0,
                                 $_osd->remarks,
-                                $_osd->order_type
+                                $_osd->order_type,
+                                $osh->table_id
                             ); 
                         }
                     }
@@ -756,7 +786,7 @@ class OrderSlipController extends Controller
     private function saveToKitchen(
         $ko_id,$header_id,$detail_id,
         $part_id,$comp_id,$location_id,
-        $qty,$is_paid,$remarks,$order_type
+        $qty,$is_paid,$remarks,$order_type,$table_id
         ){
 
         $helper     = new Helper;
@@ -780,6 +810,7 @@ class OrderSlipController extends Controller
         $ko->is_paid            = $is_paid;
         $ko->remarks            = $remarks;
         $ko->postmix_id         = $comp_id;
+        $ko->table_id           = $table_id;
         $ko->save();
         return $ko;
     } 
