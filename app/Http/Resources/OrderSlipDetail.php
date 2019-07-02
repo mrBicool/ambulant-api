@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Model\KitchenOrder;
 
 class OrderSlipDetail extends JsonResource
 {
@@ -14,6 +15,17 @@ class OrderSlipDetail extends JsonResource
      */
     public function toArray($request)
     {
+        $ko = KitchenOrder::where('branch_id',$this->branch_id)
+            ->where('origin',2)
+            ->where('header_id', $this->orderslip_header_id)
+            ->where('detail_id', $this->orderslip_detail_id)
+            ->where('part_id', $this->product_id)
+            ->where('status', 'A')
+            ->first();
+        $ko_status = null;
+        if($ko){
+            $ko_status = 'FOR PICKUP';
+        }
         //return parent::toArray($request);
         return [
             'branch_id' 			=> $this->branch_id, 
@@ -41,7 +53,8 @@ class OrderSlipDetail extends JsonResource
             'main_product_comp_id'  => $this->main_product_comp_id,
             'main_product_comp_qty' => $this->main_product_comp_qty,
             'guest_no'              => $this->guest_no,
-            'guest_type'            => $this->guest_type
+            'guest_type'            => $this->guest_type,
+            'kitchen_status'        => $ko_status
         ];
     }
 }

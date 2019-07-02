@@ -19,7 +19,8 @@ class KitchenOrder extends Model
         'remarks'       => 'REMARKS', 
         'postmix_id'    => 'POSTMIXID',
         'origin'        => 'ORIGIN',
-        'table_id'      => 'TABLE_ID'
+        'table_id'      => 'TABLE_ID',
+        'status'        => 'STATUS'
     ];
 
     protected $getterMutators = [
