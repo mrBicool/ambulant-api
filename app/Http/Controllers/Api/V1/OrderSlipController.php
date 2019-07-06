@@ -23,6 +23,115 @@ use App\Services\BranchLastIssuedNumberServices as BLIN;
 class OrderSlipController extends Controller
 {
     //
+    public function tableEntry(Request $request){
+
+        try{
+
+            $helper     = new Helper;
+            $osh        = new OrderSlipHeader;
+            $user       = Auth::user(); 
+            $isOnDuty   = $user->isOnDuty($helper->getClarionDate(now()));
+            $branch_id  = config('settings.branch_id'); 
+            $blin       = new BLIN($branch_id);
+
+            // begin transaction
+            DB::beginTransaction();
+
+            // check if this ambulant has an active sales order 
+            $aso = $osh->getActiveOrder($user->username);
+
+            // create slipheader
+            if( is_null($aso) ){
+                //$osh->orderslip_header_id       = $osh->getNewId();
+                $osh->orderslip_header_id       = $blin->getNewIdForOrderSlipHeader();
+                $osh->branch_id                 = config('settings.branch_id');
+                $osh->transaction_type_id       = 1;
+                $osh->total_amount              = 0;
+                $osh->discount_amount           = 0;
+                $osh->net_amount                = 0;
+                $osh->status                    = 'B'; //Pending
+
+                $osh->created_at                = now();
+                $osh->orig_invoice_date         = $helper->getClarionDate(now());
+                $osh->encoded_date              = now();
+                $osh->encoded_by                = $user->username;
+                $osh->prepared_by               = $user->name;
+                $osh->cce_name                  = $user->name;
+                $osh->total_hc                  = 1;
+                $osh->outlet_id                 = $isOnDuty->storeOutlet->outlet_id;
+                $osh->table_id                  = $request->table_id;
+                $osh->save(); 
+            }
+
+            /**
+             * commit all changes above
+             */
+            DB::commit();
+            
+            return response()->json([
+                'success'   => true,
+                'status'    => 200,
+                'message'   => 'Success',
+                'data'      => [
+                    'orderslip_id' => $osh->orderslip_header_id
+                ]
+            ]);
+
+        }catch( \Exception $e){
+
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'message' => 'SERVER ERROR'
+            ]);
+            
+        } 
+    }
+
+    public function checkActiveOrder(){
+        
+        /**
+         * SAFETY FIRST
+         */
+        try{
+            // begin transaction
+            //DB::beginTransaction();
+
+            $user       = Auth::user();
+            $osh        = new OrderSlipHeader;
+
+            // check if this ambulant has an active sales order 
+            $aso = $osh->getActiveOrder($user->username);
+
+            if( is_null($aso) ){
+                return response()->json([
+                    'success' => false,
+                    'status' => 200, 
+                    'message' => 'There is no active order, you may now proceed to table selection'
+                ]);
+            }
+
+            // commit all changes 
+            //DB::commit(); 
+
+            return response()->json([
+                'success'   => true,
+                'status'    => 200,
+                'message'   => 'Continue to guest selection.'
+            ]);
+
+        } catch( \Exception $e){
+            Log::error($e->getMessage());
+            return response()->json([
+                'success' => false,
+                'status' => 500, 
+                'message' => 'you shits'
+            ]);
+        }
+
+    }
+
     public function store(Request $request){ 
         try{
             
