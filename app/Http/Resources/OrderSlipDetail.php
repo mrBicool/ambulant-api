@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Model\KitchenOrder;
+use App\Model\SitePart;
 
 class OrderSlipDetail extends JsonResource
 {
@@ -15,6 +16,7 @@ class OrderSlipDetail extends JsonResource
      */
     public function toArray($request)
     {
+
         $ko = KitchenOrder::where('branch_id',$this->branch_id)
             ->where('origin',2)
             ->where('header_id', $this->orderslip_header_id)
@@ -22,10 +24,19 @@ class OrderSlipDetail extends JsonResource
             ->where('part_id', $this->product_id)
             ->where('status', 'A')
             ->first();
+
         $ko_status = null;
+
         if($ko){
             $ko_status = 'FOR PICKUP';
         }
+
+        // sitepart
+        $sp = SitePart::where('branch_id', $this->branch_id)
+                ->where('sitepart_id', $this->product_id)
+                ->first();
+        \Log::debug($sp);
+
         //return parent::toArray($request);
         return [
             'branch_id' 			=> $this->branch_id, 
@@ -54,7 +65,11 @@ class OrderSlipDetail extends JsonResource
             'main_product_comp_qty' => $this->main_product_comp_qty,
             'guest_no'              => $this->guest_no,
             'guest_type'            => $this->guest_type,
-            'kitchen_status'        => $ko_status
+            'kitchen_status'        => $ko_status,
+            'is_vatable'            => $sp->is_vat,
+            'is_food'               => $sp->is_food,
+            'is_admission'          => $sp->pre_part_no,
+            'is_unli'               => $sp->is_unli
         ];
     }
 }
