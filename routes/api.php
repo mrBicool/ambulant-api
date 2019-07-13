@@ -63,6 +63,15 @@ Route::namespace('Api\V1')->group(function () {
 
             Route::get('/claiming/check-code',          'ClaimingController@checkCode');
             Route::post('/claiming',                    'ClaimingController@claim');
+
+            // adopting to table numbering shits
+            Route::get('/is-there-an-active-order',     'OrderSlipController@checkActiveOrder');
+            Route::get('/tables',                       'TableController@list');
+
+            Route::post('/orderslip/table-entry',       'OrderSlipController@tableEntry');
+            Route::get('/table/{id}/guests',            'TableController@guests');
+            Route::get('/guest-selection',              'GuestSelectionController@guestselect');
+
         });
     });
 

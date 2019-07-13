@@ -42,7 +42,7 @@ class OrderSlipDetail extends Model
         'main_product_id'       => 'MAIN_PRODUCT_ID',
         'main_product_comp_id'  => 'MAIN_PRODUCT_COMPONENT_ID',
         'main_product_comp_qty' => 'MAIN_PRODUCT_COMPONENT_QTY',
-        'guest_no'              => 'GUEST_NO',
+        'guest_no'              => 'GUESTNO',
         'guest_type'            => 'GUEST_TYPE'
     ];
 
