@@ -116,10 +116,16 @@ class OrderSlipController extends Controller
             // commit all changes 
             //DB::commit(); 
 
+            //dd($aso->table_id);
+            //if( $aso->table_id )
+
             return response()->json([
                 'success'   => true,
                 'status'    => 200,
-                'message'   => 'Continue to guest selection.'
+                'message'   => 'Continue to guest selection.',
+                'data'      => [
+                    'table_no' => $aso->table_id
+                ]
             ]);
 
         } catch( \Exception $e){
@@ -356,7 +362,7 @@ class OrderSlipController extends Controller
             $user       = Auth::user();
             $isOnDuty   = $user->isOnDuty($helper->getClarionDate(now()));
             
-            // begin transaction
+            // begin transaction 
             DB::beginTransaction();
 
             // check if this ambulant has an active sales order
